@@ -1,50 +1,25 @@
 # コロッセウム
 
-## 環境準備
-### 1. Gitのインストール
-- Windows向け
-下記リンク参考にすれば行けると思います。<br>
-https://qiita.com/takeru-hirai/items/4fbe6593d42f9a844b1c
+**私の役割:** クライアントエンジニア (ロジック設計・実装担当)
+**使用技術:** Unreal Engine 5, C++, Git/GitHub
+**開発期間:** 2025年8月〜現在 (3ヶ月以上継続中)
 
-- Mac向け↓（Macあまり詳しくないのでいくつか参考貼っときます）
 
-**手順**
-1. ターミナルを開く（Finder→アプリケーション→ユーティリティ→ターミナル）
-2. 下記コマンドを入力
-```
-git --version
-```
-3. 「Command Line Tools」をインストールしますか？と聞かれたら「インストール」を選ぶ（バージョンが表示されたらGitが既に入ってます）
-4. インスールが完了すれば後は自動で使えます
+## 担当箇所
+### 1. Souse/colosseum/private/Battle/BattleActoin.cpp
+最初に担当した箇所
+先輩プログラマーのコードを基盤に攻撃の実装
+UnrealEnginの開発のフローを学ぶことができた。
+プロのコードを読むことでお手本を頭のイメージすることができるようになった
 
-**参考**<br>
-- https://prog-8.com/docs/git-env<br>
-- https://qiita.com/generosity_hiroto_taniguchi/items/0a1c9a2548527f50b5ff
 
-### 2. Gitのコマンド操作方法(プログラマー以外はコマンドは覚えなくていいです)
-Gitに関しては下記ページで詳しく説明をされているのでご確認ください<br>
-https://zenn.dev/getgotgoto/articles/506bcfbcd55149
+### 2.Souse/colosseum/private/Battle/Maso〜.cpp　Souse/colosseum/public/Battle/Maso〜.h
+ゲームの核となるロジックを実装した
+オブジェクト指向を意識した設計
+保守性・拡張性の高さを上げるためにポリモーフィズムを使用
+先輩プログラマーの方にサポートしてもらいながら実装することができた。
 
-基本的に下記のコマンドが使えれば大丈夫です
-- git clone
-- git pull
-- git checkout
-- git commit
-- git push
-- git merge
 
-### 3. Gitを操作するためのGUIのインストール
-Gitをコマンドでの操作ではなく、GUI上で操作するために必要なツールです。<br>
-初心者はSourceTreeが使いやすいと思います。
-下記リンクの右上の Download free からダウンロードできます<br>
-https://www.sourcetreeapp.com/
-
-慣れている人にはGit Extensionsがおすすめ<br>
-https://gitextensions.github.io/
-
-**※SourceTreeの使い方は別途説明用意する予定です**
-
-### 4. リポジトリのクローン
-基本的に git clone コマンドだけで完了できます（sshの場合は別）
-下記リンクを参考にリポジトリをローカルにクローンしてください
-https://docs.github.com/ja/repositories/creating-and-managing-repositories/cloning-a-repository
+### チーム開発での貢献と成長姿勢
+* **主体的な学習:** 当初はUEやGitの知識が不足していましたが、「10分調べてから考察を含めて質問する」ことを徹底。プロのフィードバックを効率的に吸収し、短期間でコアロジックを任されるまでに成長しました。
+* **当事者意識:** 当初はサポート役の予定でしたが、**自らプランナーに相談し**、ロジック実装の主導権を獲得。チームの技術的な推進役として貢献しました。
