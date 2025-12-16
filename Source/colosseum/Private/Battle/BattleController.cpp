@@ -18,13 +18,13 @@ void ABattleController::ReleaseCansel()
 }
 
 // キャンセルフラグが立っているかどうか
-bool ABattleController::IsCansel()
+bool ABattleController::IsCansel() const
 {
     return InputCansel.Coutinue;
 }
 
 // キャンセルフラグが立っているかどうか
-bool ABattleController::IsCanselTrigger()
+bool ABattleController::IsCanselTrigger() const
 {
     return InputCansel.Trigger;
 }
@@ -44,16 +44,172 @@ void ABattleController::ReleaseOk()
 
 
 // 決定フラグが立っているかどうか
-bool ABattleController::IsOk()
+bool ABattleController::IsOk() const
 {
     return InputOk.Coutinue;
 }
 
 //  決定入力のトリガ
-bool ABattleController::IsOkTrigger()
+bool ABattleController::IsOkTrigger() const
 {
     return InputOk.Trigger;
 }
+
+//  ページアップ入力
+void ABattleController::PageUp()
+{
+    InputBegin(&InputPageUp);
+}
+
+//  ページアップ入力リリース
+void ABattleController::ReleasePageUp()
+{
+    InputRelease(&InputPageUp);
+}
+
+//  ページアップ入力判定
+bool ABattleController::IsPageUp() const
+{
+    return InputPageUp.Coutinue;
+}
+
+//  ページアップ入力トリガ判定
+bool ABattleController::IsPageUpTrigger() const
+{
+    return InputPageUp.Trigger;
+}
+
+// ページダウン入力
+void ABattleController::PageDown()
+{
+    InputBegin(&InputPageDown);
+}
+// ページダウン入力リリース
+void ABattleController::ReleasePageDown()
+{
+    InputRelease(&InputPageDown);
+}
+// ページダウン入力判定
+bool ABattleController::IsPageDown() const
+{
+    return InputPageDown.Coutinue;
+}
+// ページダウン入力トリガ判定
+bool ABattleController::IsPageDownTrigger() const
+{
+    return InputPageDown.Trigger;
+}
+
+
+// ページ切り替え入力（左）
+void ABattleController::PageSwitchingLeft()
+{
+    InputBegin(&InputPageSwitchingLeft);
+}
+
+// ページ切り替え入力リリース（左）
+void ABattleController::ReleasePageSwitchingLeft()
+{
+    InputRelease(&InputPageSwitchingLeft);
+}
+
+// ページ切り替え入力判定（左）
+bool ABattleController::IsPageSwitchingLeft() const
+{
+    return InputPageSwitchingLeft.Coutinue;
+}
+
+// ページ切り替え入力トリガ判定（左）
+bool ABattleController::IsPageSwitchingLeftTrigger() const
+{
+    return InputPageSwitchingLeft.Trigger;
+}
+
+//  ページ切り替え入力（右）
+void ABattleController::PageSwitchingRight()
+{
+    InputBegin(&InputPageSwitchingRight);
+}
+
+//  ページ切り替え入力リリース（右）
+void ABattleController::ReleasePageSwitchingRight()
+{
+    InputRelease(&InputPageSwitchingRight);
+}
+
+//  ページ切り替え入力判定（右）
+bool ABattleController::IsPageSwitchingRight() const
+{
+    return InputPageSwitchingRight.Coutinue;
+}
+
+//  ページ切り替え入力トリガ判定（右）
+bool ABattleController::IsPageSwitchingRightTrigger() const
+{
+    return InputPageSwitchingRight.Trigger;
+}
+
+
+// ポーズ入力
+void ABattleController::InPause()
+{
+    InputBegin(&InputPause);
+}
+
+// ポーズ入力リリース
+void ABattleController::ReleasePause()
+{
+    InputRelease(&InputPause);
+}
+
+// ポーズ入力判定
+bool ABattleController::IsPause() const
+{
+    return InputPause.Coutinue;
+}
+
+// ポーズ入力トリガ判定
+bool ABattleController::IsPauseTrigger() const
+{
+    return InputPause.Trigger;
+}
+
+// タイトルに戻る入力
+bool ABattleController::IsReturnToTitle() const
+{
+    return IsPause();
+}
+
+//  タイトルに戻る入力トリガ
+bool ABattleController::IsReturnToTitleTrigger() const
+{
+    return IsPauseTrigger();
+}
+
+// 魔素相関図表示入力
+void ABattleController::MasoCD()
+{
+    InputBegin(&InputMasoCD);
+}
+
+// 魔素相関図表示入力リリース
+void ABattleController::ReleaseMasoCD()
+{
+    InputRelease(&InputMasoCD);
+}
+
+// 魔素相関図表示入力判定
+bool ABattleController::IsMasoCD() const
+{
+    return InputMasoCD.Coutinue;
+}
+
+// 魔素相関図表示入力トリガ判定
+bool ABattleController::IsMasoCDTrigger() const
+{
+    return InputMasoCD.Trigger;
+}
+
 
 void ABattleController::InputBegin(ABattleController::FButtonInputInfo* InputData) const
 {
@@ -151,6 +307,12 @@ void ABattleController::InputRun(float DeltaSeconds)
 {
     InputRun(&InputOk,DeltaSeconds);
     InputRun(&InputCansel,DeltaSeconds);
+    InputRun(&InputPageUp, DeltaSeconds);
+    InputRun(&InputPageDown, DeltaSeconds);
+    InputRun(&InputPageSwitchingLeft, DeltaSeconds);
+    InputRun(&InputPageSwitchingRight, DeltaSeconds);
+    InputRun(&InputPause, DeltaSeconds);
+    InputRun(&InputMasoCD, DeltaSeconds);
     InputRun(&InputLeftAxis, DeltaSeconds);
 }
 

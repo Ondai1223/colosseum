@@ -17,20 +17,20 @@ UCLASS(Blueprintable)
 
 class COLOSSEUM_API AUnit : public AActor, public IUnitAnimationInterface
 {
-	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AUnit();
+    GENERATED_BODY()
+
+public:
+    // Sets default values for this actor's properties
+    AUnit();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    // Called when the game starts or when spawned
+    virtual void BeginPlay() override;
 
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+public:
+    // Called every frame
+    virtual void Tick(float DeltaTime) override;
 
     //  ユニットデータの設定
     void SetUnitData(const FUnitData& UnitData);
@@ -40,6 +40,9 @@ public:
 
     //  ユニットデータの取得
     FUnitData& GetUnitData();
+
+    // スケール設定
+    void Set3DScale(const FVector& scale);
 
     // 回転設定
     void Set3DRotation(const FRotator& rotation);
@@ -87,4 +90,7 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<UUnitAnimInstance> UnitAnimInstanceObject = nullptr; // ユニットアニメーションインスタンスオブジェクト
+
+    UPROPERTY(Transient)
+    TObjectPtr<UMaterialInstanceDynamic> FaceMaterialInstance;   // 顔のマテリアルインスタンス(nullptrの場合もある)
 };

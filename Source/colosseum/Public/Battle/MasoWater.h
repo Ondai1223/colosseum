@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Battle/Interface/MasoInterface.h"
+#include "NiagaraSystem.h"
 #include "MasoWater.generated.h"
 
+#define WaterType "Water"
 /**
  * 
  */
@@ -20,9 +22,18 @@ public:
 
 	virtual TObjectPtr<UMaterialInterface> getMasoMaterial() override;
 
+	virtual FString getMasoType() override;
+
+	virtual TObjectPtr<UNiagaraSystem> getNaiagaraSystem() override;
+
 
 private:
 	// MasoPanelに使用するマテリアル
 	TObjectPtr<UMaterialInterface> MasoMaterial;
 	
+	// 魔素のタイプ
+	FString TYPE = WaterType;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraSystem> WaterNiagaraSystem;
 };

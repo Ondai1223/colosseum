@@ -63,6 +63,42 @@ void UBattleInGameWidget::NativeConstruct()
 
 }
 
+void UBattleInGameWidget::OpenInGame_Implementation()
+{
+}
+
+
+void UBattleInGameWidget::CloseInGame_Implementation()
+{
+}
+
+
+bool UBattleInGameWidget::IsOpend() const
+{
+    return StatusOpend;
+}
+
+
+void UBattleInGameWidget::SetOpend()
+{
+    StatusOpend = true;
+}
+
+
+bool UBattleInGameWidget::IsClose() const
+{
+    return !StatusOpend;
+}
+
+void UBattleInGameWidget::SetClosed()
+{
+    StatusOpend = false;
+}
+
+
+
+
+
 
 void UBattleInGameWidget::BeginBattleCommand_Implementation(ABattleGameMode* GameMode, AUnitBattleParameter* BattleUnit)
 {

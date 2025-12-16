@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Battle/BattleCommandColumn.h"
 #include "BattleCommandWidget.generated.h"
 class ABattleGameMode;
 class AUnitBattleParameter;
@@ -76,5 +77,5 @@ public:
 
 private:
     //  矢印ウイジェット
-    TArray<TObjectPtr<UUserWidget>>  BattleArrows;
+    TArray<TObjectPtr<UBattleCommandColumn>>  BattleArrows;
 };

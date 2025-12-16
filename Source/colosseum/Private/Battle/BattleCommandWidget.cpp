@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "Battle/BattleCommandWidget.h"
 #include "Battle/BattleGameMode.h"
-#include "Battle/BattleCommandColumn.h"
 #include "Components/TextBlock.h"
 #define COMMAND_NUM 4
 
@@ -10,13 +9,16 @@
 #define SKILL_COLUMN    2
 #define MOVE_COLUMN     3
 
+#define COMMAND_SWITCHER_ON 0
+#define COMMAND_SWITCHER_OFF    1
+
 
 #define COMMAND_ATTACK_NAME     TEXT("WBP_Command_1")
 #define COMMAND_DIFFENCE_NAME   TEXT("WBP_Command_2")
 #define COMMAND_SKILL_NAME      TEXT("WBP_Command_3")
 #define COMMAND_MOVE_NAME       TEXT("WBP_Command_4")
 
-#define ARROW_NAME              TEXT("WBP_Common_Arrow")
+#define ARROW_NAME              TEXT("WidgetSwitcher_Base")
 #define TEXT_BLOCK_NAME         TEXT("TextBlockCommand")
 
 #define TEXT_NAME_ATTACK        TEXT("攻撃")
@@ -35,17 +37,14 @@ void UBattleCommandWidget::NativeConstruct()
     TObjectPtr<UBattleCommandColumn> CommandSkill = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_SKILL_NAME));
     TObjectPtr<UBattleCommandColumn> CommandMove = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_MOVE_NAME));
 
-    //  矢印ウイジェット取得
-    TObjectPtr<UUserWidget> ArrowAttack = Cast<UUserWidget>(CommandAttack->GetWidgetFromName(ARROW_NAME));
-    TObjectPtr<UUserWidget> ArrowDiffence = Cast<UUserWidget>(CommandDiffence->GetWidgetFromName(ARROW_NAME));
-    TObjectPtr<UUserWidget> ArrowSkill = Cast<UUserWidget>(CommandSkill->GetWidgetFromName(ARROW_NAME));
-    TObjectPtr<UUserWidget> ArrowMove = Cast<UUserWidget>(CommandMove->GetWidgetFromName(ARROW_NAME));
-
     //  矢印ウイジェット配列にセット
-    BattleArrows.Add(ArrowAttack);
-    BattleArrows.Add(ArrowDiffence);
-    BattleArrows.Add(ArrowSkill);
-    BattleArrows.Add(ArrowMove);
+    BattleArrows.Add(CommandAttack);
+    BattleArrows.Add(CommandDiffence);
+    BattleArrows.Add(CommandSkill);
+    BattleArrows.Add(CommandMove);
+
+
+
 
     //  アイコン選択
     CommandAttack->SelectIconNo = ATTACK_COLUMN;
@@ -97,9 +96,10 @@ void UBattleCommandWidget::ReleaseBattleCommand_Implementation(float DeltaSecond
 //  全ての矢印を非表示
 void UBattleCommandWidget::ArrowAllHiddn()
 {
-    for (TArray<TObjectPtr<UUserWidget>>::TIterator Ite(BattleArrows); Ite; ++Ite)
+    for (TArray<TObjectPtr<UBattleCommandColumn>>::TIterator Ite(BattleArrows); Ite; ++Ite)
     {
-        (*Ite)->SetVisibility(ESlateVisibility::Hidden);
+        (*Ite)->SelectedColumn = COMMAND_SWITCHER_OFF;
+        (*Ite)->OnSelectedColumn();
     }
 }
 
@@ -150,7 +150,8 @@ void UBattleCommandWidget::SetArrow(int AddCursor)
     }
 
 
-    BattleArrows[SelectCursor]->SetVisibility(ESlateVisibility::Visible);
+    BattleArrows[SelectCursor]->SelectedColumn = COMMAND_SWITCHER_ON;
+    BattleArrows[SelectCursor]->OnSelectedColumn();
 }
 
 //  コマンド選択処理(戻り値：コマンド確定したらそのコマンドを返す。まだならEBattleCommand::NONEを返す)
@@ -237,6 +238,7 @@ EBattleCommand UBattleCommandWidget::RunSelectCommand(float DeltaSeconds)
 //  選択コマンドをセット
 void UBattleCommandWidget::SetSelectedCommand()
 {
+#if 0
     TObjectPtr<UBattleCommandColumn> CommandAttack = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_ATTACK_NAME));
     TObjectPtr<UBattleCommandColumn> CommandDiffence = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_DIFFENCE_NAME));
     TObjectPtr<UBattleCommandColumn> CommandSkill = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_SKILL_NAME));
@@ -251,4 +253,5 @@ void UBattleCommandWidget::SetSelectedCommand()
     CommandDiffence->OnSelectedColumn();
     CommandSkill->OnSelectedColumn();
     CommandMove->OnSelectedColumn();
+#endif
 }

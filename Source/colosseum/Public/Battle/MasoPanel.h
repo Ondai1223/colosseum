@@ -25,25 +25,39 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	// MasoPanelDataを配列に追加.
-	void JoinMasoPanelData(FMasoPanelData PanelData);
+	// 右と左指定してMasoPanelDataを配列に追加.
+	void JoinMasoPanelData(int32 Key, FMasoPanelData PanelData);
 
 	// MasoPanelData配列の大きさ取得.
-	int GetMasoPanelDataArraySize();
+	int GetMasoPanelDataMapSize();
 
-	// 右と左指定してMasoPanelDataを取得.(右か左指定した魔素のみに処理を行いたいとき)
-	bool GetMasoPanelDataFromMasoNum(int Masoindex);
+	// 右と左指定してMasoPanelDataを取得.
+	bool GetMasoPanelData(int32 Key);
 
-	// 配列のindexからMasoPanelDataを取得.(登録されている魔素すべてに処理を行いたいとき)
-	bool GetMasoPanelDataFromIndex(int index);
+	// 指定したKeyに値があるか判定.
+	bool HasMasoData(int32 Key);
+
+	// 登録されているKeyを取得.
+	void GetMasoKeys(TArray<int32>& OutKeys);
 
 	// 配列のindexからMasoPanelDataを削除.
-	void RemoveMasoPanelData(int index);
+	void RemoveMasoPanelData(int32 Key);
+
+	// 配列のMasoPanelDataを全削除.
+	void AllRemoveMasoPanelData();
+
+	void SetIsActive(bool Active);
+
+	bool GetIsActive();
 
 public:
-	FMasoPanelData* MasoPanelDataPtr; // 一時保管用のポインタ
+	FMasoPanelData* PanelDataPtr;
+
 private:
 	UPROPERTY(Transient)
-	TArray<FMasoPanelData> MasoPanelDataArray; // パネルのデータを所持する配列.
+	TMap<int32, FMasoPanelData> MasoPanelDataMap; // パネルのデータを所持する配列.
+
+	UPROPERTY(Transient)
+	bool IsActivate = false; // 魔素の効果が実行中かどうか.
 
 };

@@ -42,6 +42,33 @@ public:
 
 
 public:
+    //  開始インゲーム
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Battle)
+    void OpenInGame();
+    virtual void OpenInGame_Implementation();
+
+    //  終了インゲーム
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Battle)
+    void CloseInGame();
+    virtual void CloseInGame_Implementation();
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    bool IsOpend() const;
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void SetOpend();
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    bool IsClose() const;
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void SetClosed();
+
+
+public:
     //  バトルコマンド開始
     UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Battle)
     void BeginBattleCommand(ABattleGameMode* GameMode , AUnitBattleParameter* BattleUnit);
@@ -138,5 +165,12 @@ public:
     //  プレーヤー１のネームウイジェット
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
     TObjectPtr<UPlayerNameWidget>   Player1NameWidget;
+
+
+private:
+
+    bool StatusOpend = false;
+
+
 
 };

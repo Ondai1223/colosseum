@@ -26,42 +26,64 @@ void AMasoPanel::Tick(float DeltaTime)
 }
 
 // メンバ変数に登録する.
-void AMasoPanel::JoinMasoPanelData(FMasoPanelData PanelData)
+void AMasoPanel::JoinMasoPanelData(int32 Key, FMasoPanelData PanelData)
 {
-	MasoPanelDataArray.Add(PanelData);
-}
-
-int AMasoPanel::GetMasoPanelDataArraySize()
-{
-	return MasoPanelDataArray.Num();
-}
-
-bool AMasoPanel::GetMasoPanelDataFromMasoNum(int Masoindex)
-{
-
-	for (int i = 0; MasoPanelDataArray.Num(); ++i)
+	if (Key == 0 || Key == 1)
 	{
-		if (MasoPanelDataArray[i].PanelSideIndex == Masoindex)
-		{
-			MasoPanelDataPtr = &MasoPanelDataArray[i];
-			return true;
-		}
+		MasoPanelDataMap.Add(Key, PanelData);
+		UE_LOG(LogTemp, Warning, TEXT("魔素登録完了"));
 	}
-	return false;
+	
 }
 
-bool AMasoPanel::GetMasoPanelDataFromIndex(int index)
+int AMasoPanel::GetMasoPanelDataMapSize()
 {
-	if (index < MasoPanelDataArray.Num())
+	return MasoPanelDataMap.Num();
+}
+
+bool AMasoPanel::GetMasoPanelData(int32 Key)
+{
+	PanelDataPtr = MasoPanelDataMap.Find(Key);
+
+	if (PanelDataPtr)
 	{
-		MasoPanelDataPtr = &MasoPanelDataArray[index];
+		UE_LOG(LogTemp, Warning, TEXT("魔素パネルのデータを取得."));
 		return true;
 	}
+	
 	return false;
 }
 
-void AMasoPanel::RemoveMasoPanelData(int index)
+bool AMasoPanel::HasMasoData(int32 Key)
 {
-	MasoPanelDataArray.RemoveAt(index);
+	return MasoPanelDataMap.Contains(Key);
 }
 
+void AMasoPanel::GetMasoKeys(TArray<int32>& OutKeys)
+{
+	MasoPanelDataMap.GetKeys(OutKeys);
+}
+
+void AMasoPanel::RemoveMasoPanelData(int32 Key)
+{
+	if (Key == 0 || Key == 1)
+	{
+		MasoPanelDataMap.Remove(Key);
+	}
+}
+
+void AMasoPanel::AllRemoveMasoPanelData()
+{
+	MasoPanelDataMap.Empty();
+	UE_LOG(LogTemp, Warning, TEXT("魔素マップを空にします."))
+}
+
+void AMasoPanel::SetIsActive(bool Active)
+{
+	IsActivate = Active;
+}
+
+bool AMasoPanel::GetIsActive()
+{
+	return IsActivate;
+}

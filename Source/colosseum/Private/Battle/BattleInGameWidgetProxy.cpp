@@ -52,6 +52,52 @@ void UBattleInGameWidgetProxy::ReleaseBattleCommand(float DeltaSeconds)
 }
 
 
+
+void UBattleInGameWidgetProxy::OpenInGame()
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::OpenInGame: InGameWidget is nullptr"));
+    }
+    else
+    {
+        InGameWidget->OpenInGame();
+    }
+}
+void UBattleInGameWidgetProxy::CloseInGame()
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::CloseInGame: InGameWidget is nullptr"));
+    }
+    else
+    {
+        InGameWidget->CloseInGame();
+    }
+}
+
+bool UBattleInGameWidgetProxy::IsOpend() const
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::IsOpend: InGameWidget is nullptr"));
+        return false;
+    }
+    return InGameWidget->IsOpend();
+}
+
+bool UBattleInGameWidgetProxy::IsClose() const
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::IsClose: InGameWidget is nullptr"));
+        return false;
+    }
+    return InGameWidget->IsClose();
+}
+
+
+
 //  ステータス全体の表示非表示
 void UBattleInGameWidgetProxy::EnableVisible()
 {

@@ -47,9 +47,14 @@ int BattleHelper::CalcPanelNum(int X, int Y) const
 FVector BattleHelper::CalcPanelLocation(int X, int Y) const
 {
     FVector Location;
-
+    float CenterOffset = -BATTLE_FILED_OFFSET_SIZE;
+    if (Y >= (GAME_LOCATION_DEPTH / 2))
+    {
+        // 1ブロック分の空間を追加
+        CenterOffset = BATTLE_FILED_OFFSET_SIZE;
+    }
     Location.Y = (GAME_LOCATION_WIDTH - 1 - X) * BATTLE_FILED_BLOCK_SIZE - BATTLE_FILED_BLOCK_SIZE; // X座標を計算
-    Location.X = Y * BATTLE_FILED_BLOCK_SIZE - BATTLE_FILED_DEPTH * 0.5f + BATTLE_FILED_BLOCK_SIZE * 0.5f; // Y座標を計算
+    Location.X = Y * BATTLE_FILED_BLOCK_SIZE + CenterOffset - BATTLE_FILED_DEPTH * 0.5f + BATTLE_FILED_BLOCK_SIZE * 0.5f; // Y座標を計算
     Location.Z = 0.0f;
     return Location;
 }

@@ -6,6 +6,9 @@
 #include "Battle/BattleHelper.h"
 #include "Battle/BattleGameMode.h"
 
+#define UNIT_DEFAULT_SCALE   FVector(0.8f, 0.8f, 0.8f) // ユニットデフォルトスケール
+
+
 AUnitBattleParameter::AUnitBattleParameter()
 {
 }
@@ -49,6 +52,8 @@ void AUnitBattleParameter::SetUnitData(TObjectPtr<AUnit>& Unit)
 
     UnitActor->CreateUnitData();
     Set3DLocation(Location);
+
+    UnitActor->Set3DScale(UNIT_DEFAULT_SCALE);
 
     //  HP設定
     Hp = UnitActor->GetUnitData().HpMax;

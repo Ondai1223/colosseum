@@ -7,13 +7,14 @@
 #include "Engine/StaticMesh.h"
 #include "Unit/UnitTankAnimInstance.h"
 
-
+#define FACE_MATERIAL_INDEX 1 //  顔のマテリアルインデックス
 #define TANK_MODEL_PLAYER1  TEXT("/Game/Unit/tank/Charactor/BP_UnitTank1.BP_UnitTank1_C") //  タンクプレーヤー１
 #define TANK_MODEL_PLAYER2  TEXT("/Game/Unit/tank/Charactor/BP_UnitTank2.BP_UnitTank2_C") //  タンクプレーヤー２
+#define HEALER_MODEL_PLAYER1  TEXT("/Game/Unit/healer/Charactor/BP_UnitHealer1.BP_UnitHealer1_C") //  ヒーラープレーヤー１
+#define HEALER_MODEL_PLAYER2  TEXT("/Game/Unit/healer/Charactor/BP_UnitHealer2.BP_UnitHealer2_C") //  ヒーラープレーヤー２
 #define ROUNDER_MODEL     TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  ラウンダーモデル
 #define HELER_MODEL       TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  ヒーラーモデル
 #define MAGITION_MODEL    TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  マジシャンモデル
-
 
 
 
@@ -93,20 +94,41 @@ void AUnit::CreateUnitData()
                     UnitAnimInstanceObject = Cast<UUnitAnimInstance>(UnitMesh->GetAnimInstance());
                 }
             }
-            return;
         }
-
-
-
-
-
-        break;
+        return;
     case EUnitJob::EUJ_Rounder: // ラウンダー
         SkeletalMeshPath = FSoftObjectPath(ROUNDER_MODEL);
         break;
     case EUnitJob::EUJ_Healer:  // ヒーラー
-        SkeletalMeshPath = FSoftObjectPath(HELER_MODEL);
-        break;
+        if (UnitBaseData.TeamID == EUnitTeamID::EUTID_Team1)
+        {
+            SkeletalMeshPath = FSoftObjectPath(HEALER_MODEL_PLAYER1);
+        }
+        else
+        {
+            SkeletalMeshPath = FSoftObjectPath(HEALER_MODEL_PLAYER2);
+        }
+        {
+            TSubclassOf<class AUnitModel> CharBP = TSoftClassPtr<class AUnitModel >(SkeletalMeshPath).LoadSynchronous();
+            if (CharBP)
+            {
+                UnitModel = GetWorld()->SpawnActor<AUnitModel>(CharBP);
+                if (UnitModel)
+                {
+                    UnitModel->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+                    UnitModel->SetMasterUnit(this);
+
+                    UnitMesh = Cast<USkeletalMeshComponent>(UnitModel->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+
+                    UnitAnimInstanceObject = Cast<UUnitAnimInstance>(UnitMesh->GetAnimInstance());
+                    FaceMaterialInstance = UnitMesh->CreateAndSetMaterialInstanceDynamic(FACE_MATERIAL_INDEX);
+                }
+            }
+        }
+
+
+        return;
     case EUnitJob::EUJ_Magician:    // マジシャン
         SkeletalMeshPath = FSoftObjectPath(MAGITION_MODEL);
         break;
@@ -152,6 +174,11 @@ FUnitData& AUnit::GetUnitData()
     return UnitBaseData;
 }
 
+
+void AUnit::Set3DScale(const FVector& scale)
+{
+    UnitMesh->SetRelativeScale3D(scale);
+}
 
 // 回転設定
 void AUnit::Set3DRotation(const FRotator& rotation)

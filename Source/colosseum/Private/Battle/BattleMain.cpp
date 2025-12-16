@@ -6,6 +6,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
+#define CursorZ -10.0f
 // Sets default values
 ABattleMain::ABattleMain()
 {
@@ -64,7 +65,7 @@ void ABattleMain::BeginBattleState(ABattleGameMode* GameMode)
     else {
         location = GameMode->GetBattleCursorLocation(Player2Cursor.X, Player2Cursor.Y); // プレイヤー1のカーソル位置を取得
     }
-
+    location.Z = CursorZ;
     CursorModel->SetRelativeLocation(location); // カーソルの位置を設定
 
 };
@@ -266,6 +267,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                 cursor.Y = cursor.BeforeY = SelectUnit->GetGameY();
                 CursorModel->SetVisibility(true);
                 FVector CusorLocation = GameMode->GetBattleCursorLocation(cursor.X, cursor.Y);
+                CusorLocation.Z = CursorZ;
                 CursorModel->SetRelativeLocation(CusorLocation); // カーソルの位置を更新
 
             }
@@ -721,6 +723,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 #endif
                         CursorModel->SetVisibility(true);
                         FVector CusorLocation = GameMode->GetBattleCursorLocation(SelectUnit->GetGameX(), SelectUnit->GetGameY());
+                        CusorLocation.Z = CursorZ;
                         CursorModel->SetRelativeLocation(CusorLocation); // カーソルの位置を更新
 
                         //  カーソル位置を取得
@@ -861,6 +864,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 #endif
                         CursorModel->SetVisibility(true);
                         FVector CusorLocation = GameMode->GetBattleCursorLocation(SelectUnit->GetGameX(), SelectUnit->GetGameY());
+                        CusorLocation.Z = CursorZ;
                         CursorModel->SetRelativeLocation(CusorLocation); // カーソルの位置を更新
 
                         //  カーソル位置を取得
@@ -906,11 +910,13 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                 if (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1)
                 {
                     GameMode->MasoManager->UpdatePlayer1Maso();
+                    GameMode->MasoManager->ResolvePlayer1PendingMasoActions();
                     UE_LOG(LogTemp, Warning, TEXT("Player1のターン終了"));
                 }
                 else 
                 {
                     GameMode->MasoManager->UpdatePlayer2Maso();
+                    GameMode->MasoManager->ResolvePlayer2PendingMasoActions();
                     UE_LOG(LogTemp, Warning, TEXT("Player2のターン終了"));
                 }
                 return ETickBattleState::EBS_TurnEnd;
@@ -948,6 +954,7 @@ bool ABattleMain::MoveCursor(ABattleGameMode* GameMode, ABattleMain::FMoveCursor
 
         float sinlerp = FMath::Sin(FMath::DegreesToRadians(90.0f) * cursor.MoveLerp);
         FVector CurrentPosition = FMath::Lerp(OldCursorPositin , NewCursorPositin, sinlerp); // カーソルの現在位置を補間
+        CurrentPosition.Z = CursorZ;
         CursorModel->SetRelativeLocation(CurrentPosition); // カーソルの位置を更新
         if (cursor.MoveLerp < 1.0f)
         {
@@ -1051,6 +1058,7 @@ bool ABattleMain::MoveCursor(ABattleGameMode* GameMode, ABattleMain::FMoveCursor
 
 
     FVector CusorLocation = GameMode->GetBattleCursorLocation(cursor.X, cursor.Y);
+    CusorLocation.Z = CursorZ;
     CursorModel->SetRelativeLocation(CusorLocation); // カーソルの位置を更新
 
     TObjectPtr<AUnitBattleParameter> NextUnit = GameMode->GetUnit(cursor.X, cursor.Y);
@@ -1205,7 +1213,9 @@ void ABattleMain::ReturnSelectUnitCursorLocation(ABattleGameMode* GameMode)
         int X = SelectUnit->GetGameX();
         int Y = SelectUnit->GetGameY();
         BattleHelper    helper;
-        CursorModel->SetRelativeLocation(helper.CalcPanelLocation(X, Y));
+        FVector CursorLocation = helper.CalcPanelLocation(X, Y);
+        CursorLocation.Z = CursorZ;
+        CursorModel->SetRelativeLocation(CursorLocation);
 
         FMoveCursorData& cursor = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
 
@@ -1225,11 +1235,11 @@ void ABattleMain::CreateCursorModel()
         // NiagaraComponentを取得
         CursorEffectComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
             CursorNiagaraSystem,
-            RootComponent,
+            CursorModel,
             NAME_None,
             FVector::ZeroVector,
             FRotator::ZeroRotator,
-            FVector::OneVector,
+            FVector(1.7f, 1.7f, 1.0f),
             EAttachLocation::KeepRelativeOffset,
             true,
             ENCPoolMethod::None,

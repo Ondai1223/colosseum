@@ -5,9 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Battle/Interface/BattleResultInterface.h"
+#include "Battle/Interface/BattleResultDisplayInterface.h"
 #include "BattleResult.generated.h"
 
 class ABattleGameMode;
+class ABattleResultDisplay;
 
 UCLASS()
 class COLOSSEUM_API ABattleResult : public APawn, public IBattleResultInterface
@@ -35,6 +37,11 @@ public:
 
     // IBattleResultInterface‚ÌÀ‘•(–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚é)
     virtual bool TickResultState(ABattleGameMode* GameMode, float DeltaSeconds) override;
+
+
+public:
+    UPROPERTY(Transient)
+    TObjectPtr<ABattleResultDisplay> BattleResultDisplay;
 
 
 };

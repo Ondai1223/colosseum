@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Battle/Interface/MasoInterface.h" 
+#include "NiagaraComponent.h"
 #include "MasoPanelData.generated.h"
 /**
  * 魔素パネルのデータ格納用
@@ -20,8 +21,5 @@ struct COLOSSEUM_API FMasoPanelData
     uint16 DisappearTurn = 2; // 消滅までのターン数.
 
     UPROPERTY(Transient)
-    int PanelSideIndex = -1; // マスの0(右)か1(左)かどちらにあるか.
-
-    UPROPERTY(Transient)
-    bool bIsactivate = false; // 魔素の効果が実行中かどうか.
+    TObjectPtr<UNiagaraComponent> MasoEffect;
 };

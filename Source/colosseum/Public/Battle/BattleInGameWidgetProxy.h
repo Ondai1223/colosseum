@@ -34,6 +34,19 @@ public:
 
 
 public:
+
+    //  インゲームのオープンクローズ
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void OpenInGame();
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void CloseInGame();
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    bool IsOpend() const;
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    bool IsClose() const;
+
+
     //  ステータス全体の表示非表示
     void EnableVisible();
     void DisenableVisible();

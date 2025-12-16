@@ -9,10 +9,22 @@ UMasoFire::UMasoFire()
 {
 	FSoftObjectPath MasoPanelMaterialPath("/Game/Battle/Material/M_MasoFire.M_MasoFire");
 	MasoMaterial = Cast<UMaterialInterface>(MasoPanelMaterialPath.TryLoad());
+
+	FireNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/FixEffect/magice_essence/Ef_Elm_Fire_02.Ef_Elm_Fire_02"));
 }
 
-// 水魔素のマテリアル取得
+// 炎魔素のマテリアル取得
 TObjectPtr<UMaterialInterface> UMasoFire::getMasoMaterial()
 {
 	return MasoMaterial;
+}
+
+FString UMasoFire::getMasoType()
+{
+	return TYPE;
+}
+
+TObjectPtr<UNiagaraSystem> UMasoFire::getNaiagaraSystem()
+{
+	return FireNiagaraSystem;
 }

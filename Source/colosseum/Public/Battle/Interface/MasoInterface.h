@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "NiagaraSystem.h"
 #include "MasoInterface.generated.h"
 
 // This class does not need to be modified.
@@ -23,4 +24,8 @@ class COLOSSEUM_API IMasoInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual TObjectPtr<UMaterialInterface> getMasoMaterial() { return 0; }
+
+	virtual FString getMasoType() { return " "; }
+
+	virtual TObjectPtr<UNiagaraSystem> getNaiagaraSystem() { return nullptr; }
 };
