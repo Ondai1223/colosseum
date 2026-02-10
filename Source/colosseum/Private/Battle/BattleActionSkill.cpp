@@ -3,6 +3,10 @@
 
 #include "Battle/BattleActionSkill.h"
 #include "Battle/BattleGameMode.h"
+
+#define ATTACK_PARAMETER 15
+#define SPECIAL_PARAMETER 2
+
 //  選択パネルの設定
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
@@ -47,11 +51,33 @@ void UBattleActionSkill::CalcAction(FActionResultData* ActionResult, const TArra
 
     for (TArray<FGameLocation>::TConstIterator Ite(TargetLocations); Ite; ++Ite)
     {
-        FActionTargetAndLocation TargetLocation;
-        TargetLocation.Location.X = Ite->X;
-        TargetLocation.Location.Y = Ite->Y;
-        TargetLocation.Target = GameMode->GetUnit(Ite->X, Ite->Y);
-        ActionResult->ActionSkillResult.TargetUnits.Add(TargetLocation);
+        TObjectPtr Target = GameMode->GetUnit(Ite->X, Ite->Y);
+        if (Target)
+        {
+            FActionAttackTargetData TargetData;
+            TargetData.TargetUnit = Target;
+            // FActionTargetAndLocationへの情報格納
+            FActionTargetAndLocation TargetLocation;
+            TargetLocation.Location.X = Ite->X;
+            TargetLocation.Location.Y = Ite->Y;
+            TargetLocation.Target = Target;
+            // FActionSkillkResultDataへの情報格納
+            ActionResult->ActionSkillResult.TargetUnits.Add(TargetLocation);
+
+            // ダメージ計算
+            // 攻撃力(行動キャラ)＊特技倍率 / 防御力(被)＊攻撃倍率＝ダメージ
+            float attackPower = ActionUnit->GetAttackPower();
+            float defensePower = Target->GetDefencePower();
+            float calculatedDamage = (attackPower * SPECIAL_PARAMETER) / defensePower * ATTACK_PARAMETER;
+
+            // Clamp(変数, Min, Max);変数の取りうる値を制限する.
+            FMath::Clamp(calculatedDamage, 0, Target->GetMaxHp());
+            UE_LOG(LogTemp, Warning, TEXT("攻撃特技の計算：calculatedDamage: %f, attackPower: %f, defensePower: %f"), calculatedDamage, attackPower, defensePower);
+
+            TargetData.HpDamage = calculatedDamage;
+            TargetData.MpDamage = 0.0f;
+            ActionResult->ActionAttackResult.AttackTargets.Add(TargetData);
+        }
     }
 
 

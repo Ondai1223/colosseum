@@ -161,9 +161,142 @@ public:
    UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
    bool IsMasoCDTrigger() const;
 
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion0();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion0();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion0() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion0Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion1();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion1();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion1() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion1Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion2();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion2();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion2() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion2Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion3();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion3();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion3() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion3Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion4();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion4();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion4() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion4Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion5();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion5();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion5() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion5Trigger() const;
      
      
-     
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion6();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion6();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion6() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion6Trigger() const;
+
+
+   //　モーション再生入力
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void Motion7();
+
+   //　モーション再生入力リリース
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   void ReleaseMotion7();
+
+   // モーション再生入力判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion7() const;
+
+   // モーション再生入力トリガ判定
+   UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+   bool IsMotion7Trigger() const;
+
      // 左スティックの値をセット
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     void SetLeftAxis(const FVector2D& InputLeftAxis);
@@ -240,6 +373,15 @@ private:
     FButtonInputInfo InputPause;    // ポーズ入力情報
 
     FButtonInputInfo InputMasoCD;    // 魔素相関図表示
+
+    FButtonInputInfo InputMotion0;    // モーション１つ目
+    FButtonInputInfo InputMotion1;    // モーション２つ目
+    FButtonInputInfo InputMotion2;    // モーション３つ目
+    FButtonInputInfo InputMotion3;    // モーション４つ目
+    FButtonInputInfo InputMotion4;    // モーション５つ目
+    FButtonInputInfo InputMotion5;    // モーション６つ目
+    FButtonInputInfo InputMotion6;    // モーション７つ目
+    FButtonInputInfo InputMotion7;    // モーション８つ目
 
 
 

@@ -8,14 +8,18 @@
 #include "Unit/UnitTankAnimInstance.h"
 
 #define FACE_MATERIAL_INDEX 1 //  顔のマテリアルインデックス
-#define TANK_MODEL_PLAYER1  TEXT("/Game/Unit/tank/Charactor/BP_UnitTank1.BP_UnitTank1_C") //  タンクプレーヤー１
-#define TANK_MODEL_PLAYER2  TEXT("/Game/Unit/tank/Charactor/BP_UnitTank2.BP_UnitTank2_C") //  タンクプレーヤー２
+#define TANK_MODEL_PLAYER1    TEXT("/Game/Unit/tank/Charactor/BP_UnitTank1.BP_UnitTank1_C") //  タンクプレーヤー１
+#define TANK_MODEL_PLAYER2    TEXT("/Game/Unit/tank/Charactor/BP_UnitTank2.BP_UnitTank2_C") //  タンクプレーヤー２
 #define HEALER_MODEL_PLAYER1  TEXT("/Game/Unit/healer/Charactor/BP_UnitHealer1.BP_UnitHealer1_C") //  ヒーラープレーヤー１
 #define HEALER_MODEL_PLAYER2  TEXT("/Game/Unit/healer/Charactor/BP_UnitHealer2.BP_UnitHealer2_C") //  ヒーラープレーヤー２
-#define ROUNDER_MODEL     TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  ラウンダーモデル
-#define HELER_MODEL       TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  ヒーラーモデル
-#define MAGITION_MODEL    TEXT("/Game/Character/sotai_lowpoll.sotai_lowpoll") //  マジシャンモデル
+#define ROUNDER_MODEL_PLAYER1   TEXT("/Game/Unit/rounder/Charactor/BP_Rounder_P1.BP_Rounder_P1_C") //  ラウンダープレーヤー１
+#define ROUNDER_MODEL_PLAYER2   TEXT("/Game/Unit/rounder/Charactor/BP_Rounder_P2.BP_Rounder_P2_C") //  ラウンダープレーヤー２
+#define MAGITION_MODEL_PLAYER1    TEXT("/Game/Unit/mazishan/Charactor/BP_Mazishan_P1.BP_Mazishan_P1_C") //  マジシャンプレーヤー１
+#define MAGITION_MODEL_PLAYER2    TEXT("/Game/Unit/mazishan/Charactor/BP_Mazishan_P2.BP_Mazishan_P2_C") //  マジシャンプレーヤー２
 
+
+#define FACE_U_ID   TEXT("FaceU")
+#define FACE_V_ID   TEXT("FaceV")
 
 
 // Sets default values
@@ -95,9 +99,36 @@ void AUnit::CreateUnitData()
                 }
             }
         }
-        return;
+        break;
     case EUnitJob::EUJ_Rounder: // ラウンダー
-        SkeletalMeshPath = FSoftObjectPath(ROUNDER_MODEL);
+        if (UnitBaseData.TeamID == EUnitTeamID::EUTID_Team1)
+        {
+            SkeletalMeshPath = FSoftObjectPath(ROUNDER_MODEL_PLAYER1);
+        }
+        else
+        {
+            SkeletalMeshPath = FSoftObjectPath(ROUNDER_MODEL_PLAYER2);
+        }
+        {
+            TSubclassOf<class AUnitModel> CharBP = TSoftClassPtr<class AUnitModel >(SkeletalMeshPath).LoadSynchronous();
+            if (CharBP)
+            {
+                UnitModel = GetWorld()->SpawnActor<AUnitModel>(CharBP);
+                if (UnitModel)
+                {
+                    UnitModel->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+                    UnitModel->SetMasterUnit(this);
+
+                    UnitMesh = Cast<USkeletalMeshComponent>(UnitModel->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+
+                    UnitAnimInstanceObject = Cast<UUnitAnimInstance>(UnitMesh->GetAnimInstance());
+                    FaceMaterialInstance = UnitMesh->CreateAndSetMaterialInstanceDynamic(FACE_MATERIAL_INDEX);
+                    ChangeUnitFace(EUnitFace::EUF_Normal);
+                }
+            }
+        }
+
         break;
     case EUnitJob::EUJ_Healer:  // ヒーラー
         if (UnitBaseData.TeamID == EUnitTeamID::EUTID_Team1)
@@ -123,14 +154,42 @@ void AUnit::CreateUnitData()
 
                     UnitAnimInstanceObject = Cast<UUnitAnimInstance>(UnitMesh->GetAnimInstance());
                     FaceMaterialInstance = UnitMesh->CreateAndSetMaterialInstanceDynamic(FACE_MATERIAL_INDEX);
+                    ChangeUnitFace(EUnitFace::EUF_Normal);
                 }
             }
         }
 
 
-        return;
+        break;
     case EUnitJob::EUJ_Magician:    // マジシャン
-        SkeletalMeshPath = FSoftObjectPath(MAGITION_MODEL);
+        if (UnitBaseData.TeamID == EUnitTeamID::EUTID_Team1)
+        {
+            SkeletalMeshPath = FSoftObjectPath(MAGITION_MODEL_PLAYER1);
+        }
+        else
+        {
+            SkeletalMeshPath = FSoftObjectPath(MAGITION_MODEL_PLAYER2);
+        }
+        {
+            TSubclassOf<class AUnitModel> CharBP = TSoftClassPtr<class AUnitModel >(SkeletalMeshPath).LoadSynchronous();
+            if (CharBP)
+            {
+                UnitModel = GetWorld()->SpawnActor<AUnitModel>(CharBP);
+                if (UnitModel)
+                {
+                    UnitModel->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
+                    UnitModel->SetMasterUnit(this);
+
+                    UnitMesh = Cast<USkeletalMeshComponent>(UnitModel->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+
+                    UnitAnimInstanceObject = Cast<UUnitAnimInstance>(UnitMesh->GetAnimInstance());
+                    FaceMaterialInstance = UnitMesh->CreateAndSetMaterialInstanceDynamic(FACE_MATERIAL_INDEX);
+                    ChangeUnitFace(EUnitFace::EUF_Normal);
+                }
+            }
+        }
+        
         break;
     }
 
@@ -191,6 +250,19 @@ FRotator AUnit::Get3DRotation() const
 {
     return UnitMesh->GetRelativeRotation();
 }
+
+// クォータニオン取得
+FQuat AUnit::GetQuaternion() const
+{
+    return UnitMesh->GetRelativeRotation().Quaternion();
+}
+
+//  クォータニオン設定
+void AUnit::SetQuaternion(const FQuat& quat)
+{
+    return UnitMesh->SetRelativeRotation(quat);
+}
+
 
 
 void AUnit::Set3DLocation(const FVector& location)
@@ -270,7 +342,7 @@ void AUnit::PlayAnimationSkillAttack(float ShiftTime)
 {
     if (UnitModel)
     {
-        UnitModel->OnSkillAttackRunEvent();
+        UnitModel->OnSkillAttackRunEvent    ();
     }
 }
 
@@ -292,4 +364,26 @@ bool AUnit::IsEndOfAnime() const
         return UnitModel->IsEndOfAnime();
     }
     return true;
+}
+
+
+void AUnit::ChangeUnitFace(EUnitFace FaceID)
+{
+    if (FaceMaterialInstance)
+    {
+        //  表情に応じたテクスチャを設定
+        FVector2D   uv = FVector2D::ZeroVector;
+        UTexture* FaceTexture = nullptr;
+        switch (FaceID)
+        {
+        case EUnitFace::EUF_Normal:
+        default:
+            uv = FVector2D::ZeroVector;
+            break;
+        }
+
+        FaceMaterialInstance->SetScalarParameterValue(FACE_U_ID, uv.X);
+        FaceMaterialInstance->SetScalarParameterValue(FACE_V_ID, uv.Y);
+
+    }
 }

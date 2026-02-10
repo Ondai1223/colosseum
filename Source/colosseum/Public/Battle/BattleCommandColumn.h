@@ -6,6 +6,8 @@
 #include "Blueprint/UserWidget.h"
 #include "BattleCommandColumn.generated.h"
 
+
+
 /**
  * バトルコマンドのカラム
  */
@@ -26,6 +28,10 @@ public:
     void OnSelectedColumn();
     virtual void OnSelectedColumn_Implementation();
 
+    // 選択不可のカラム
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Battle)
+    void OnColumnEnable();
+    virtual void OnColumnEnable_Implementation();
 public:
     //  アイコン番号
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
@@ -35,5 +41,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
     int SelectedColumn  = 0;
 
-	
+    //  選択されているカラム番号
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    bool Enable = true;
 };

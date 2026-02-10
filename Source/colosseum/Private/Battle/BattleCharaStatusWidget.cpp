@@ -6,6 +6,8 @@
 
 #define CHAR_FACE_NAME_1P   TEXT("WBP_InGame_CharaFace_1P")
 #define CHAR_FACE_NAME_2P   TEXT("WBP_InGame_CharaFace_2P")
+#define HP_GAUGE_NAME      "HP"
+#define MP_GAUGE_NAME      "MP"
 
 void UBattleCharaStatusWidget::NativeConstruct()
 {
@@ -80,6 +82,8 @@ void UBattleCharaStatusWidget::DisplayUnitBattleParameter()
         SetMaxMp(static_cast<int>(BattleUnitParameter->GetMaxMp()));
         SetHp(static_cast<int>(BattleUnitParameter->GetHp()));
         SetMp(static_cast<int>(BattleUnitParameter->GetMp()));
+        SetHpName(HP_GAUGE_NAME);
+        SetMpName(MP_GAUGE_NAME);
 
         ChangeEndAction();
         ChangeDead();
@@ -141,6 +145,11 @@ void UBattleCharaStatusWidget::SetMaxHp(int NewMaxHp)
     HpGauge->SetMaxPoint(NewMaxHp);
 }
 
+void UBattleCharaStatusWidget::SetHpName(FString HpName)
+{
+    HpGauge->SetParameterName(HpName);
+}
+
 
 int UBattleCharaStatusWidget::GetMp() const
 {
@@ -168,6 +177,11 @@ int UBattleCharaStatusWidget::GetMaxMp() const
 void UBattleCharaStatusWidget::SetMaxMp(int NewMaxMp)
 {
     MpGauge->SetMaxPoint(NewMaxMp);
+}
+
+void UBattleCharaStatusWidget::SetMpName(FString MpName)
+{
+    MpGauge->SetParameterName(MpName);
 }
 
 void UBattleCharaStatusWidget::OpenStatus()

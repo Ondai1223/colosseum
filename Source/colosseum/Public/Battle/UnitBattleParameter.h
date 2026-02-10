@@ -6,6 +6,8 @@
 #include "UObject/NoExportTypes.h"
 #include "Unit/UnitData.h"
 #include "Unit/Interface/UnitAnimationInterface.h"
+#include "Unit/Interface/UnitFaceInterface.h"
+
 #include "UnitBattleParameter.generated.h"
 
 #define CATEGORY_Battle "Battle"
@@ -33,7 +35,7 @@ class UBattleGauge;
  * ユニットを戦闘に出すときのパラメーター
  */
 UCLASS(Blueprintable)
-class COLOSSEUM_API AUnitBattleParameter : public AActor , public IUnitAnimationInterface
+class COLOSSEUM_API AUnitBattleParameter : public AActor , public IUnitAnimationInterface , public IUnitFaceInterface
 {
 	GENERATED_BODY()
 
@@ -183,6 +185,15 @@ public:
     // 回転取得
     FRotator Get3DRotation() const;
 
+
+    // クォータニオン取得
+    FQuat GetQuaternion() const;
+
+    //  クォータニオン設定
+    void SetQuaternion(const FQuat& quat);
+
+
+
     //  3D座標の設定
     void Set3DLocation(const FVector& Location);
 
@@ -250,6 +261,9 @@ public:
     //  アニメーション終了判定
     bool IsEndOfAnime() const;
 
+public:
+    //  表情変更のオーバーライド
+    virtual void ChangeUnitFace(EUnitFace FaceID) override;
 
 private:
     //  ゲームモード

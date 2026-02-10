@@ -6,6 +6,9 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 
+
+
+
 #define CursorZ -10.0f
 // Sets default values
 ABattleMain::ABattleMain()
@@ -68,6 +71,9 @@ void ABattleMain::BeginBattleState(ABattleGameMode* GameMode)
     location.Z = CursorZ;
     CursorModel->SetRelativeLocation(location); // カーソルの位置を設定
 
+
+
+
 };
 
 
@@ -75,7 +81,102 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 {
     // 戦闘開始前の先制後攻の表示イベントの実装
  
+    #if 1
+    
+    // モーション動画撮影用(デバッグ)
+    // 待機
+    if (GameMode->BattleController->IsMotion0()) 
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+           Unit->PlayAnimationWait();
+        }
+    }
 
+    // 歩き
+    if (GameMode->BattleController->IsMotion1())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationMove();
+            GameMode->BattleController->Motion0();
+        }
+    }
+
+    // 攻撃
+    if (GameMode->BattleController->IsMotion2())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationAttack();
+            GameMode->BattleController->Motion0();
+        }
+    }
+
+    // ダメージ
+    if (GameMode->BattleController->IsMotion3())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationDamage();
+        }
+    }
+
+    // ダウン
+    if (GameMode->BattleController->IsMotion4())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationDeath();
+        }
+    }
+
+    // 防御
+    if (GameMode->BattleController->IsMotion5())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationGuard();
+            GameMode->BattleController->Motion0();
+        }
+    }
+
+    // 特技(攻撃)
+    if (GameMode->BattleController->IsMotion6())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationSkillAttack();
+            GameMode->BattleController->Motion0();
+        }
+    }
+
+    // 特技(バフ)
+    if (GameMode->BattleController->IsMotion7())
+    {
+        FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+        TObjectPtr<AUnitBattleParameter> Unit = GameMode->GetUnit(cur.X, cur.Y);
+        if (Unit)
+        {
+            Unit->PlayAnimationBuf();
+        }
+    }
+
+    #endif
 
     switch(BattleMainState) {
         case EBattleMainState::BMS_UnitSelect:  //  ユニット選択
@@ -312,6 +413,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     //  BttleParameterに攻撃対象
                     //  SelectUnitに攻撃するユニット
                     ClearActionResult();
+
 #if 0
                     if (BattleAttackInterface)
                     {
@@ -644,7 +746,8 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         //  攻撃アクションの開始
                         BattleSkillInterface->BeginAction(ActionResult, GameMode);
 
-
+                        //　魔素付与
+                        GameMode->MasoManager->JoinMaso(Location.X, Location.Y);
 
                     }
                     else
@@ -1153,10 +1256,6 @@ void ABattleMain::AttackAction(ABattleGameMode* GameMode , int X , int Y)
 
         //  攻撃アクションの開始
         BattleAttackInterface->BeginAction(ActionResult, GameMode);
-
-        //　魔素付与
-        GameMode->MasoManager->JoinMaso(Location.X, Location.Y);
-
     }
     else
     {
@@ -1228,7 +1327,7 @@ void ABattleMain::ReturnSelectUnitCursorLocation(ABattleGameMode* GameMode)
 void ABattleMain::CreateCursorModel()
 {
     // NiagaraSystemを取得
-    CursorNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/FixEffect/Cursoul/Ef_Cursoul.Ef_Cursoul"));
+    CursorNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, UNIT_CURSOR_EFFECT_NAME);
 
     if (CursorNiagaraSystem)
     {

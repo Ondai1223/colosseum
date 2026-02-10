@@ -100,6 +100,7 @@ void UBattleCommandWidget::ArrowAllHiddn()
     {
         (*Ite)->SelectedColumn = COMMAND_SWITCHER_OFF;
         (*Ite)->OnSelectedColumn();
+        (*Ite)->OnColumnEnable();
     }
 }
 
@@ -238,20 +239,18 @@ EBattleCommand UBattleCommandWidget::RunSelectCommand(float DeltaSeconds)
 //  選択コマンドをセット
 void UBattleCommandWidget::SetSelectedCommand()
 {
-#if 0
     TObjectPtr<UBattleCommandColumn> CommandAttack = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_ATTACK_NAME));
     TObjectPtr<UBattleCommandColumn> CommandDiffence = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_DIFFENCE_NAME));
     TObjectPtr<UBattleCommandColumn> CommandSkill = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_SKILL_NAME));
     TObjectPtr<UBattleCommandColumn> CommandMove = Cast<UBattleCommandColumn>(GetWidgetFromName(COMMAND_MOVE_NAME));
 
-    CommandAttack->SelectedColumn = (SelectUnit->IsAttackEnd()) ? 1 : 0;
-    CommandDiffence->SelectedColumn = (SelectUnit->IsDiffenceEnd()) ? 1 : 0;
-    CommandSkill->SelectedColumn = (SelectUnit->IsSkillEnd()) ? 1 : 0;
-    CommandMove->SelectedColumn = (SelectUnit->IsMoveEnd()) ? 1 : 0;
+    CommandAttack->Enable = !(SelectUnit->IsAttackEnd());
+    CommandDiffence->Enable = !(SelectUnit->IsDiffenceEnd());
+    CommandSkill->Enable = !(SelectUnit->IsSkillEnd());
+    CommandMove->Enable = !(SelectUnit->IsMoveEnd());
 
-    CommandAttack->OnSelectedColumn();
-    CommandDiffence->OnSelectedColumn();
-    CommandSkill->OnSelectedColumn();
-    CommandMove->OnSelectedColumn();
-#endif
+    CommandAttack->OnColumnEnable();
+    CommandDiffence->OnColumnEnable();
+    CommandSkill->OnColumnEnable();
+    CommandMove->OnColumnEnable();
 }

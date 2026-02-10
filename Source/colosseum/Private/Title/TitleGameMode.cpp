@@ -3,3 +3,7 @@
 
 #include "Title/TitleGameMode.h"
 
+void ATitleGameMode::TickGameMode(float DeltaSeconds)
+{
+	
+}

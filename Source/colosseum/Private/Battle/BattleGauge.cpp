@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Battle/BattleGauge.h"
 #include "Components/TextBlock.h"
@@ -8,6 +8,7 @@
 #define GAUGE_TEXT_NOW     TEXT("TextBlock_NumTop")
 #define GAUGE_TEXT_MAX     TEXT("TextBlock_NumBottom")
 #define GAUGE_BAR_NAME      TEXT("ProgressBar")
+#define GAUGE_TEXT_ParameterName   TEXT("TextBlock_ParameterName")
 
 void UBattleGauge::SetNowPoint(int NewNowPoint)
 {
@@ -31,6 +32,15 @@ void UBattleGauge::SetMaxPoint(int NewMaxPoint)
     if (MaxPointText)
     {
         MaxPointText->SetText(FText::AsNumber(NewMaxPoint));
+    }
+}
+
+void UBattleGauge::SetParameterName(FString NewParameterName)
+{
+    UTextBlock* ParameterNameText = Cast<UTextBlock>(GetWidgetFromName(GAUGE_TEXT_ParameterName));
+    if (ParameterNameText)
+    {
+        ParameterNameText->SetText(FText::FromString(NewParameterName));
     }
 }
 

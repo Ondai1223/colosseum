@@ -16,3 +16,5 @@ enum class EBattleNetWorkMode : uint8
     EBNM_Server         UMETA(DisplayName = "サーバー"),
     EBNM_Client         UMETA(DisplayName = "クライアント"),
 };
+
+#define UNIT_CURSOR_EFFECT_NAME TEXT("/Game/FixEffect/Cursoul/Ef_Cursoul.Ef_Cursoul")

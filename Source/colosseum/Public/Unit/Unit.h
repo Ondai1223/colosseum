@@ -8,6 +8,7 @@
 #include "Unit/UnitAnimInstance.h"
 #include "Unit/UnitModel.h"
 #include "Unit/Interface/UnitAnimationInterface.h"
+#include "Unit/Interface/UnitFaceInterface.h"
 #include "Unit.generated.h"
 
 
@@ -15,7 +16,7 @@
 
 UCLASS(Blueprintable)
 
-class COLOSSEUM_API AUnit : public AActor, public IUnitAnimationInterface
+class COLOSSEUM_API AUnit : public AActor, public IUnitAnimationInterface, public IUnitFaceInterface
 {
     GENERATED_BODY()
 
@@ -50,6 +51,12 @@ public:
     // 回転取得
     FRotator Get3DRotation() const;
 
+    // クォータニオン取得
+    FQuat GetQuaternion() const;
+
+    //  クォータニオン設定
+    void SetQuaternion(const FQuat& quat);
+
     // 位置設定
     void Set3DLocation(const FVector& location);
 
@@ -79,7 +86,16 @@ public:
 
     bool IsEndOfAnime() const;
 
+public:
 
+
+    //  任意の表情に変更
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Unit)
+    virtual void ChangeUnitFace(EUnitFace FaceID) override;
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Unit)
+    FVector2D UnitFaceUV = FVector2D::ZeroVector; //  ユニット表情UV
 private:
     FUnitData UnitBaseData; // ユニットデータ
     UPROPERTY(Transient)
@@ -93,4 +109,7 @@ private:
 
     UPROPERTY(Transient)
     TObjectPtr<UMaterialInstanceDynamic> FaceMaterialInstance;   // 顔のマテリアルインスタンス(nullptrの場合もある)
+
+
+
 };

@@ -7,6 +7,16 @@
 #include "Battle/Interface/BattleActionInterface.h"
 #include "BattleActionMove.generated.h"
 
+
+enum class EMoveActionState : uint8
+{
+    EMas_None           UMETA(DisplayName = "状態なし"),        //  状態なし
+    EMas_RotUnit       UMETA(DisplayName = "ユニット回転"),      //  ユニット回転
+    EMas_Moving        UMETA(DisplayName = "移動中"),          //  移動中
+    EMas_MoveRotEnd    UMETA(DisplayName = "初期の向きに戻す"),          //  移動中
+    EMas_MoveEnd       UMETA(DisplayName = "移動終了"),        //  移動終了
+};
+
 /**
  * 
  */
@@ -57,9 +67,29 @@ public:
     //  @Return         :   true 終了 : false 続行
     virtual bool TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode) ;
 
+private:
+    //  回転処理
+    //  ActionResult    :   アクション結果
+    //  DeltaSecounds   :   細分時間
+    //  GameMode        :   ゲームモード
+    //  @Return         :   true 終了 : false 続行
+    bool TickRotateAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode);
+    //  移動処理
+    //  ActionResult    :   アクション結果
+    //  DeltaSecounds   :   細分時間
+    //  GameMode        :   ゲームモード
+    //  @Return         :   true 終了 : false 続行
+    bool TickMoveAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode);
 
 private:
     uint8   RouteNumMax = 0;    //  ルート最大数
     uint8   RouteNum = 0;       //  現在の計算位置
     float   Lerp = 0.0f;        //  補間値
+
+    FQuat   StartRotation;     //  開始回転クオータニオン
+    FQuat     NowRotation;       //  開始角度
+    FQuat     NextRotation;    //  次の角度
+
+
+    EMoveActionState    MoveState = EMoveActionState::EMas_None;
 };

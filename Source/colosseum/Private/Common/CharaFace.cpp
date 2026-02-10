@@ -5,7 +5,7 @@
 
 
 
-    //  キャラクタの顔変更(ヒーラー)
+    //  キャラクタの顔変更
 void UCharaFace::ChangeFace_Implementation()
 {
 
@@ -28,4 +28,7 @@ void UCharaFace::DeadMode_Implementation()
 {
 }
 
-
+//    やじるし
+void UCharaFace::SetArrow_Implementation( bool arrow_on )
+{
+}

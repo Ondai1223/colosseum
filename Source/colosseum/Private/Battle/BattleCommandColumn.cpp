@@ -15,3 +15,6 @@ void UBattleCommandColumn::OnSelectedColumn_Implementation()
 
 }
 
+void UBattleCommandColumn::OnColumnEnable_Implementation()
+{
+}

@@ -3,6 +3,7 @@
 
 #include "RoleSelect/RoleArrangement.h"
 #include "RoleSelect/RoleSelectHelper.h"
+#include "Battle/BattleController.h"
 #include "RoleSelect/RoleSelectGameModeBase.h"
 
 #define UNIT_DATA_MAX 3
@@ -32,9 +33,14 @@ void ARoleArrangement::Tick(float DeltaTime)
 void ARoleArrangement::BeginRoleArrangement(ARoleSelectGameModeBase *GameMode)
 {
     TickState = ETickRoleArrangementState::ETRAS_Arranging;
+
+
+
+
+
 }
 
-ERoleArrangementState ARoleArrangement::TickRoleArrangement(ARoleSelectGameModeBase* GameMode, float DeltaSeconds)
+ERoleArrangementState ARoleArrangement::TickRoleArrangement(ARoleSelectGameModeBase* GameMode,ABattleController* Controller,float DeltaSeconds)
 {
 
     switch (TickState)
@@ -54,7 +60,7 @@ ERoleArrangementState ARoleArrangement::TickRoleArrangement(ARoleSelectGameModeB
         if (flag == false)
         {
             FVector2D LeftAxis(0.0f, 0.0f);
-            LeftAxis = GameMode->Controller->GetLeftAxis();
+            LeftAxis = Controller->GetLeftAxis();
             //  ˆÚ“®Š®—¹
 
             if (LeftAxis.Length() > MOVE_CURSOR_DEAD_ZONE)
@@ -124,7 +130,7 @@ ERoleArrangementState ARoleArrangement::TickRoleArrangement(ARoleSelectGameModeB
         else
         {
             //  Œˆ’è‚©ƒLƒƒƒ“ƒZƒ‹‚©
-            if (GameMode->Controller->IsOkTrigger())
+            if (Controller->IsOkTrigger())
             {
 
                 //  OK‚ÌƒgƒŠƒK“ü—Í

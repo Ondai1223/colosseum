@@ -3,6 +3,7 @@
 
 #include "RoleSelect/RoleSelectGameModeBase.h"
 #include "RoleSelect/RoleSelectHelper.h"
+#include "Battle/BattleController.h"
 #include "RoleSelect/RoleArrangement.h"
 
 
@@ -43,7 +44,7 @@ void ARoleSelectGameModeBase::BeginRoleSelectGameMode()
 
 
     //  ロール選択配置インターフェース作成
-    RoleArrangementInterface = NewObject<ARoleArrangement>(this, ARoleArrangement::StaticClass());
+//    RoleArrangementInterface = NewObject<ARoleArrangement>(this, ARoleArrangement::StaticClass());
 
 
     if (RoleArrangementInterface)
@@ -56,12 +57,12 @@ void ARoleSelectGameModeBase::BeginRoleSelectGameMode()
 }
 
 
-void ARoleSelectGameModeBase::TickRoleSelectGameMode( float DeltaSeconds )
+void ARoleSelectGameModeBase::TickRoleSelectGameMode(ABattleController* Controller , float DeltaSeconds )
 {
     // ロールセレクトゲームモード処理
     if (RoleArrangementInterface)
     {
-        ERoleArrangementState State = RoleArrangementInterface->TickRoleArrangement(this, DeltaSeconds);
+        ERoleArrangementState State = RoleArrangementInterface->TickRoleArrangement(this , Controller , DeltaSeconds);
         switch (State)
         {
             case ERoleArrangementState::ERAS_Arranging:
@@ -99,6 +100,14 @@ void ARoleSelectGameModeBase::SelectUnitWorkSpace()
     (*Units)[WorkUnitIndex]->Set3DLocation(helper.Calc3DLocation(WorkUnitData.StartPosX,WorkUnitData.StartPosY));
     (*Units)[WorkUnitIndex]->SetVisible(true);
 }
+
+
+ARoleSelectGameModeBase* ARoleSelectGameModeBase::GetGameModeBaseInstance()
+{
+    return this;
+}
+
+
 
 
 void ARoleSelectGameModeBase::CreateWorkUnit(TArray<TObjectPtr<AUnit>>& Units, EUnitTeamID TeamID)

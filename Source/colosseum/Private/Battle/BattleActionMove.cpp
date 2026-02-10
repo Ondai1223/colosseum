@@ -4,7 +4,8 @@
 #include "Battle/BattleHelper.h"
 #include "Battle/BattleGameMode.h"
 
-#define BATTLE_UNIT_MOVE_TIME   0.5f    //  移動時間
+#define BATTLE_UNIT_MOVE_TIME   1.0f    //  移動時間
+#define BATTLE_UNIT_ROTATE_TIME 0.25f    //  回転時間
 
 //  選択パネルの設定
 //  CenterGameX     :   中心となるX座標
@@ -126,6 +127,43 @@ void UBattleActionMove::BeginAction(FActionResultData& ActionResult, ABattleGame
     RouteNumMax = ActionResult.ActionMoveResult.RouteLocation.Num();
     RouteNum = 1;
     Lerp = 0.0f;
+
+    StartRotation = ActionResult.ActionUnit->GetQuaternion();
+    StartRotation.Normalize();
+
+    MoveState = EMoveActionState::EMas_None;
+    if (RouteNum < RouteNumMax)
+    {
+
+        BattleHelper    helper;
+
+        // 移動するのでアニメーション
+        ActionResult.ActionUnit->PlayAnimationMove();
+
+
+
+        NowRotation = StartRotation;
+
+        FVector2D NowPos = FVector2D(ActionResult.ActionMoveResult.RouteLocation[0].X, ActionResult.ActionMoveResult.RouteLocation[0].Y);
+        FVector2D NextPos = FVector2D(ActionResult.ActionMoveResult.RouteLocation[1].X, ActionResult.ActionMoveResult.RouteLocation[1].Y);
+        if (helper.CalcLookAtRotation(&NextRotation, NowPos, NextPos))
+        {
+            //  向き変更あり
+            NextRotation.Normalize();
+            MoveState = EMoveActionState::EMas_RotUnit;
+        }
+        else
+        {
+            //  向き変更なし
+            MoveState = EMoveActionState::EMas_Moving;
+        }
+
+    }
+    else
+    {
+        //  移動なし
+        MoveState = EMoveActionState::EMas_None;
+    }
 }
 
 //  アクションTick
@@ -136,14 +174,57 @@ void UBattleActionMove::BeginAction(FActionResultData& ActionResult, ABattleGame
 bool UBattleActionMove::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode)
 {
     BattleHelper    helper;
-    if (RouteNum >= RouteNumMax)
+
+
+    switch (MoveState)
     {
-        //  移動終了
-        ActionResult.ActionUnit->Set3DLocation(helper.CalcPanelLocation(ActionResult.ActionMoveResult.MoveLocation.X, ActionResult.ActionMoveResult.MoveLocation.Y));
-    }
-    else 
-    {
+    case EMoveActionState::EMas_None:
+        //  落下
+    case EMoveActionState::EMas_MoveEnd:
+        ActionResult.ActionUnit->PlayAnimationWait();
+        MoveState = EMoveActionState::EMas_None;
+        return true;
+    case EMoveActionState::EMas_MoveRotEnd:
+        if (NowRotation == StartRotation)
+        {
+            //  向きが同じなら終了
+            MoveState = EMoveActionState::EMas_MoveEnd;
+        }
+        else
+        {
+            //  ユニットを敵側に向かせる
+            Lerp += DeltaSecounds / BATTLE_UNIT_ROTATE_TIME;
+            if (Lerp >= 1.0f)
+            {
+                Lerp = 0.0f;
+                NowRotation = StartRotation;
+                NextRotation = StartRotation;
+                ActionResult.ActionUnit->SetQuaternion(StartRotation);
+                MoveState = EMoveActionState::EMas_MoveEnd;
+            }
+            else
+            {
+                FQuat   Rot = FQuat::Slerp(NowRotation, NextRotation, Lerp);
+                Rot.Normalize();
+                ActionResult.ActionUnit->SetQuaternion(Rot);
+            }
+
+        }
+        break;
+    case EMoveActionState::EMas_Moving:
         //  移動中
+    {
+
+        if (RouteNum  >= RouteNumMax)
+        {
+            //  移動終了
+            ActionResult.ActionUnit->Set3DLocation(helper.CalcPanelLocation(ActionResult.ActionMoveResult.MoveLocation.X, ActionResult.ActionMoveResult.MoveLocation.Y));
+
+            NextRotation = StartRotation;
+            NowRotation = ActionResult.ActionUnit->GetQuaternion();
+            MoveState = EMoveActionState::EMas_MoveRotEnd;
+            break;
+        }
         FGameLocation   Now, Next;
         Now = ActionResult.ActionMoveResult.RouteLocation[RouteNum - 1];
         Next = ActionResult.ActionMoveResult.RouteLocation[RouteNum];
@@ -158,13 +239,63 @@ bool UBattleActionMove::TickAction(FActionResultData& ActionResult, float DeltaS
             Lerp = 0.0f;
             ++RouteNum;
             ActionResult.ActionUnit->Set3DLocation(NextLocasion);
+            if (RouteNum >= RouteNumMax)
+            {
+                //  移動終了
+                NextRotation = StartRotation;
+                NowRotation = ActionResult.ActionUnit->GetQuaternion();
+                MoveState = EMoveActionState::EMas_MoveRotEnd;
+                break;
+            }
+            //  次のマスへ向かう準備
+            Now = ActionResult.ActionMoveResult.RouteLocation[RouteNum - 1];
+            Next = ActionResult.ActionMoveResult.RouteLocation[RouteNum];
+            FVector2D NowPos = FVector2D(Now.X, Now.Y);
+            FVector2D NextPos = FVector2D(Next.X, Next.Y);
+            if (helper.CalcLookAtRotation(&NextRotation, NowPos, NextPos))
+            {
+                //  向き変更あり
+                NextRotation.Normalize();
+                MoveState = EMoveActionState::EMas_RotUnit;
+            }
         }
         else
         {
             //  補間値から3D座標算出
             ActionResult.ActionUnit->Set3DLocation((NextLocasion - NowLocation) * Lerp + NowLocation);
         }
-        return false;
     }
-    return true;
+        break;
+    case EMoveActionState::EMas_RotUnit:
+        //  ユニット回転中
+
+        Lerp += DeltaSecounds / BATTLE_UNIT_ROTATE_TIME;
+
+        if (Lerp >= 1.0f)
+        {   //  回転終了
+            Lerp = 0.0f;
+            NowRotation = NextRotation;
+            ActionResult.ActionUnit->SetQuaternion(NextRotation);
+            MoveState = EMoveActionState::EMas_Moving;
+
+            if (RouteNum >= RouteNumMax)
+            {
+                NextRotation = StartRotation;
+                NowRotation = ActionResult.ActionUnit->GetQuaternion();
+                MoveState = EMoveActionState::EMas_MoveRotEnd;
+            }
+        }
+        else
+        {
+            //  補間値から回転算出
+            FQuat   Rot = FQuat::Slerp(NowRotation, NextRotation, Lerp);
+            Rot.Normalize();
+            ActionResult.ActionUnit->SetQuaternion(Rot);
+        }
+
+        break;
+
+    }
+    return false;
+
 }

@@ -1,0 +1,12 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-KawaiiPhysicsEd.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\UnrealEngenProject\TeamMSD\colosseum\Intermediate\Build\Win64\x64\colosseumEditor\Development\UnrealEd\SharedPCH.UnrealEd.Project.ValApi.Cpp20.h.obj"
+"D:\UnrealEngenProject\TeamMSD\colosseum\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\Module.KawaiiPhysicsEd.cpp.obj"
+"D:\UnrealEngenProject\TeamMSD\colosseum\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\Default.rc2.res"
+/OUT:"D:\UnrealEngenProject\TeamMSD\colosseum\Plugins\KawaiiPhysics\Intermediate\Build\Win64\x64\UnrealEditor\Development\KawaiiPhysicsEd\UnrealEditor-KawaiiPhysicsEd.lib"

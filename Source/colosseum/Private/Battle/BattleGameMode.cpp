@@ -24,6 +24,7 @@
 #define BP_UNIT_PATH TEXT("/Game/Battle/Blueprints/BP_Unit.BP_Unit_C")  /// BP_Unit
 #define BP_UNIT_BATTLE_PARAMETER    TEXT("/Game/Battle/Blueprints/BP_UnitBattleParameter.BP_UnitBattleParameter_C") // BP_UnitBattleParamter
 
+
 #define UNIT_BATTLE_START_YAW_PLAYER1   -90.0f  //  スタート位置の角度(プレイヤー１）
 #define UNIT_BATTLE_START_YAW_PLAYER2   90.0f   //  スタート位置の角度(プレイヤー２）
 

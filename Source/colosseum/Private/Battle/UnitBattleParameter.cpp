@@ -115,6 +115,20 @@ FRotator AUnitBattleParameter::Get3DRotation() const
 }
 
 
+// クォータニオン取得
+FQuat AUnitBattleParameter::GetQuaternion() const
+{
+    return UnitActor->GetQuaternion();
+}
+
+//  クォータニオン設定
+void AUnitBattleParameter::SetQuaternion(const FQuat& quat)
+{
+    UnitActor->SetQuaternion(quat);
+}
+
+
+
 // 位置設定
 void AUnitBattleParameter::Set3DLocation(const FVector& Location)
 {
@@ -277,6 +291,13 @@ void AUnitBattleParameter::PlayAnimationBuf(float ShiftTime)
 bool AUnitBattleParameter::IsEndOfAnime() const
 {
     return UnitActor->IsEndOfAnime();
+}
+
+
+//  表情変更のオーバーライド
+void AUnitBattleParameter::ChangeUnitFace(EUnitFace FaceID)
+{
+    UnitActor->ChangeUnitFace(FaceID);
 }
 
 

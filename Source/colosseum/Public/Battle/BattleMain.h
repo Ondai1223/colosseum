@@ -151,7 +151,6 @@ public:
 
 
 
-
     FActionResultData                          ActionResult;            //  アクションリザルト
     uint32                                      SkillID;                //  スキルID
 };

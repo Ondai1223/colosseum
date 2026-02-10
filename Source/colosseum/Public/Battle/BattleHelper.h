@@ -13,6 +13,12 @@
 #define BATTLE_FILED_WIDTH (GAME_LOCATION_WIDTH * BATTLE_FILED_BLOCK_SIZE) // 戦闘フィールドの幅
 #define BATTLE_FILED_DEPTH (GAME_LOCATION_DEPTH * BATTLE_FILED_BLOCK_SIZE) // 戦闘フィールドの奥行き
 
+#define ATTACK_CAMERA_OFFSET_X BATTLE_FILED_BLOCK_SIZE * 1.0f
+#define ATTACK_CAMERA_OFFSET_Y BATTLE_FILED_BLOCK_SIZE * 1.0f
+#define ATTACK_CAMERA_OFFSET_Z BATTLE_FILED_BLOCK_SIZE * 0.25f
+
+
+
 #define BATTLE_LOAD_SYNC    //  同期をとってロード
 
 /**
@@ -38,6 +44,18 @@ public:
     //  添え字より座標を算出
     void CalcPanelPosition(int* X, int* Y,int Num)const;
 
+    //  ベクトルより振り向く方法を計算する
+    bool CalcLookAtRotation(FQuat* pOut,const FVector2D& From, const FVector2D& To) const;
+
+    //  攻撃位置の計算
+    // AttackX,AttackY : 攻撃対象位置
+    // CenterX ,CenterY : 攻撃者位置
+    // @return 攻撃者の位置
+    FVector CalcAttackActionPosition(int AttackX, int AttackY , int CenterX , int CenterY ) const;
+
+
+    // 攻撃するユニットのカメラ位置を算出する
+    FVector CalcAttackAttackStartCameraPosition(int ActionStartX, int ActionStartY) const;
 
     //  ロード(条件付きコンパイルで非同期にも出るようにする)
     template <class T>

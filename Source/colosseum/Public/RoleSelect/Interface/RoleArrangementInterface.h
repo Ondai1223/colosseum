@@ -8,6 +8,7 @@
 
 
 class ARoleSelectGameModeBase;
+class ABattleController;
 
 UENUM(BlueprintType)
 enum class ERoleArrangementState : uint8
@@ -38,7 +39,7 @@ public:
     //  ロール配置開始
     virtual void BeginRoleArrangement(ARoleSelectGameModeBase* GameMode) = 0;
     //  ロール配置のTick
-    virtual ERoleArrangementState TickRoleArrangement(ARoleSelectGameModeBase* GameMode , float DeltaSeconds) = 0;
+    virtual ERoleArrangementState TickRoleArrangement(ARoleSelectGameModeBase* GameMode , ABattleController* Controller  , float DeltaSeconds) = 0;
 
 
 };

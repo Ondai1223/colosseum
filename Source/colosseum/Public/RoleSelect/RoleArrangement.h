@@ -37,9 +37,13 @@ public:
 
 
 public:
+
+
+
     virtual void BeginRoleArrangement(ARoleSelectGameModeBase* GameMode) override;
 
-    virtual ERoleArrangementState TickRoleArrangement(ARoleSelectGameModeBase* GameMode, float DeltaSeconds) override;
+    virtual ERoleArrangementState TickRoleArrangement(ARoleSelectGameModeBase* GameMode , ABattleController* Controller ,float DeltaSeconds) override;
+
 
 public:
 

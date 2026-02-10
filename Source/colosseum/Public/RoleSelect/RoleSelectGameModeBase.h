@@ -40,7 +40,7 @@ public:
 
     // ロールセレクトゲームモード処理
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
-    void TickRoleSelectGameMode( float DeltaSeconds);
+    void TickRoleSelectGameMode( ABattleController* Controller , float DeltaSeconds);
 
 
     // ワークスペースのユニット選択
@@ -48,7 +48,8 @@ public:
     void SelectUnitWorkSpace();
 
 
-
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    ARoleSelectGameModeBase* GetGameModeBaseInstance();
 
 
 private:
@@ -57,47 +58,54 @@ private:
 
 public:
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
-    TObjectPtr<ABattleController> Controller;  // 戦闘用コントローラー
+//    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
+//    TObjectPtr<ABattleController> Controller;  // 戦闘用コントローラー
 
 
 public:
     //  カーソル
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TObjectPtr<ARoleSelectCursor> RoleSelectCursorActor;
 
     //  配置したユニットたち
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<TObjectPtr<AUnit>>   Player1Units;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<TObjectPtr<AUnit>>   Player2Units;
 
     // バトルに渡すユニットデータ
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<FUnitData>   Player1UnitDatas;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<FUnitData>   Player2UnitDatas;
 
 
     // 作業用ユニットデータ
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     FUnitData           WorkUnitData;
 
     // 予めロードしておくユニット
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<TObjectPtr<AUnit>>   WorkPlayer1Units;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     TArray<TObjectPtr<AUnit>>   WorkPlayer2Units;
 
     // 作業用ユニットインデックス
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     int WorkUnitIndex = 0;
 
 
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     ERoleSelectState    NowProccessState = ERoleSelectState::ERS_RoleSelect;
+
+
+
+    //  ゲームの対戦モード
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
+    EBattleGameMode GameMode = EBattleGameMode::EBGM_Player_VS_Player;
+
 
 private:
 

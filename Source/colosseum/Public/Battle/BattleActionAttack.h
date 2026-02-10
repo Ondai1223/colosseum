@@ -5,8 +5,34 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Battle/Interface/BattleActionInterface.h"
+#include "Battle/BattleAttackCamera.h"
 #include "BattleActionAttack.generated.h"
 
+
+UENUM(BlueprintType)
+enum class EAttackState : uint8
+{
+    None            UMETA(DisplayName = "何もしない"),
+    MoveStartCamera UMETA(DisplayName = "カメラ移動開始"),
+    MoveToTarget    UMETA(DisplayName = "ターゲットの前まで移動"),
+    Attack          UMETA(DisplayName = "攻撃"),
+    MoveBack        UMETA(DisplayName = "元の位置に戻る"),
+    End             UMETA(DisplayName = "終了"),
+    Wait            UMETA(DisplayName = "任意の秒数待つ"),
+    PlayAnimWait    UMETA(DisplayName = "待機アニメーション開始"),
+    PlayAnimAttack  UMETA(DisplayName = "攻撃アニメーション開始"),
+    PlayAnimMove    UMETA(DisplayName = "移動アニメーション開始"),
+    AnimeWaitEnd    UMETA(DisplayName = "アニメーション終了待ち"),
+    CameraFinishWait UMETA(DisplayName = "カメラ終了待ち"),
+
+};
+
+
+struct FAttackStateWaitData
+{
+    EAttackState    NextState;      //  次の状態
+    float           WaitTime;       //  待機時間
+};
 /**
  * 
  */
@@ -55,4 +81,27 @@ public:
     //  GameMode        :   ゲームモード
     //  @Return         :   true 終了 : false 続行
     virtual bool TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode) override;
+
+
+
+    // 現在のステートをスタックに保存
+    void PushState(EAttackState NextState,float WaitTime = 0.0f);
+
+    //  スタックより次のステートへ移行
+    void PopNextState();
+private:
+    UPROPERTY(Transient)
+    TObjectPtr<ABattleAttackCamera>     AttackCamera;            //  攻撃カメラ
+
+
+    EAttackState    AttackState = EAttackState::None;
+    TArray<FAttackStateWaitData>   AttackStateStack;
+
+    FVector BackupCameraEye;
+    FRotator BackupCameraRotator;
+
+
+    FVector BackupAttackUnitLocation;
+    FRotator BackupAttackUnitRotator;
+
 };

@@ -3,6 +3,10 @@
 #include "Battle/BattleActionAttack.h"
 #include "Battle/BattleGameMode.h"
 
+#define BP_BATTLE_ATTACK_CAMERA_PATH TEXT("/Game/Battle/Blueprints/BP_BattleAttackCamera.BP_BattleAttackCamera_C")  /// BP_Unit
+#define BATTLE_ATTACK_CAMERA_MOVE_TIME 0.01f
+#define BATTLE_ATTACK_CAMERA_ATTACK_MOVE_TIME 1.5f
+
 #define DEFFENCE_PARAMETER  15 //防御力のパラメータ
 //  選択パネルの設定
 //  CenterGameX     :   中心となるX座標
@@ -106,7 +110,81 @@ void UBattleActionAttack::ReflectAction(FActionResultData& ActionResult, ABattle
 //  アクション開始
 void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
 {
-    //  アニメーションなどの開始
+
+
+    BattleHelper    helper;
+    if (AttackCamera == nullptr)
+    {
+        //  アニメーションなどの開始
+        AttackState = EAttackState::MoveStartCamera;
+
+
+        TSubclassOf<ABattleAttackCamera> BP_AttackCamera = helper.Load<ABattleAttackCamera>(BP_BATTLE_ATTACK_CAMERA_PATH);
+
+        if (BP_AttackCamera == nullptr)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("FAILED BP_AttackCamera"));
+        }
+        else
+        {
+            AttackCamera = GetWorld()->SpawnActor<ABattleAttackCamera>(BP_AttackCamera);
+            AttackCamera->CameraActor = GameMode->BattleCamera;
+        }
+    }
+
+
+    if (AttackCamera)
+    {
+        BackupCameraEye = AttackCamera->CameraActor->GetActorLocation();
+        BackupCameraRotator = AttackCamera->CameraActor->GetActorRotation();
+
+
+        TObjectPtr<AUnitBattleParameter> SelectUnit = ActionResult.ActionUnit;
+        FVector LoockAtLocation = ActionResult.ActionUnit->Get3DLocation();
+        LoockAtLocation.Z = BATTLE_FILED_BLOCK_SIZE * 0.25f;
+        FVector EyeLocation = AttackCamera->CameraActor->GetActorLocation();
+
+        FVector EyeNextLocation = helper.CalcAttackAttackStartCameraPosition(SelectUnit->GetGameX(), SelectUnit->GetGameY());
+
+
+        BackupAttackUnitLocation = SelectUnit->Get3DLocation();
+        BackupAttackUnitRotator = SelectUnit->Get3DRotation();
+
+        if (AttackCamera)
+        {
+            // 攻撃するアクターにカメラを合わせてカメラ移動開始
+            AttackCamera->Initialize(
+                EyeLocation,
+                EyeNextLocation,
+                LoockAtLocation,
+                LoockAtLocation,
+                BATTLE_ATTACK_CAMERA_MOVE_TIME,
+                EMoveType::Normal,
+                ECurveType::Sign
+            );
+
+
+            //  行動をスタックに積む
+            PushState(EAttackState::None);  //　終了ステートを設定
+            PushState(EAttackState::MoveBack);  //　元に戻す
+            PushState(EAttackState::Wait, 1.0f);    //  少し待ってからカメラ移動開始
+            PushState(EAttackState::End);    //  終了処理
+            PushState(EAttackState::AnimeWaitEnd);    //  攻撃アニメーション再生
+            PushState(EAttackState::Attack);    //  攻撃
+            PushState(EAttackState::PlayAnimAttack);    //  攻撃アニメーション再生
+            PushState(EAttackState::PlayAnimWait);    //  待機アニメーション再生
+            PushState(EAttackState::MoveToTarget);  //  ターゲット位置まで移動
+            PushState(EAttackState::PlayAnimMove);  //  移動アニメーション再生
+            PushState(EAttackState::MoveStartCamera);   //  カメラ移動開始
+            PushState(EAttackState::Wait, 1.5f);    //  少し待ってからカメラ移動開始
+
+            //  まず、カメラワークが終わるのを待つ
+            AttackState = EAttackState::CameraFinishWait;
+        }
+
+
+    }
+
 }
 
 //  アクションTick
@@ -116,19 +194,158 @@ void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGa
 //  @Return         :   true 終了 : false 続行
 bool UBattleActionAttack::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode)
 {
-    //  アニメーションなどの終了待ち
 
-    for (TArray<FActionAttackTargetData>::TIterator Ite(ActionResult.ActionAttackResult.AttackTargets); Ite; ++Ite)
+    BattleHelper    helper;
+
+    switch (AttackState)
     {
-        //  お前はもう死んでいる
-        if (Ite->TargetUnit->IsDead()) {
-#if 0
-            Ite->TargetUnit->SetVisible(false);
-#else
-            Ite->TargetUnit->PlayAnimationDeath();
-#endif
+    case EAttackState::MoveStartCamera:
+        {
+            //  カメラが攻撃するユニットの前に移動し終わった
+            TObjectPtr<AUnitBattleParameter> ActionUnit = ActionResult.ActionUnit;
+            TObjectPtr<AUnitBattleParameter> TargetUnit = ActionResult.ActionAttackResult.AttackTargets[0].TargetUnit;
+            FVector EyeStartLocation = AttackCamera->GetCurrentEyeLocation();
+            FVector StartLookAtLocation = AttackCamera->GetCurrentLookAtLocation();
+            FVector EndLookAtLocation = helper.CalcAttackActionPosition(TargetUnit->GetGameX(),TargetUnit->GetGameY(),ActionUnit->GetGameX(), ActionUnit->GetGameY());
+            EndLookAtLocation.Z = StartLookAtLocation.Z;
+
+            FVector Vec = EndLookAtLocation - StartLookAtLocation;
+            Vec.Y = 0.0f;
+            Vec.Normalize();
+            FVector EyeNextLocation = EyeStartLocation + Vec * BATTLE_FILED_OFFSET_SIZE;
+            AttackCamera->Initialize(
+                EyeStartLocation,
+                EyeNextLocation,
+                StartLookAtLocation,
+                EndLookAtLocation,
+                BATTLE_ATTACK_CAMERA_ATTACK_MOVE_TIME,
+                EMoveType::Normal,
+                ECurveType::Sign
+            );
+
+            PopNextState();
         }
+        return false;
+    case EAttackState::MoveToTarget:
+        FVector location = AttackCamera->GetCurrentLookAtLocation();
+        location.Z = 0.0f;
+        ActionResult.ActionUnit->Set3DLocation(location);
+        if (AttackCamera->IsFinished())
+        {
+            PopNextState();
+        }
+        return false;
+    case EAttackState::PlayAnimAttack:
+        ActionResult.ActionUnit->PlayAnimationAttack();
+        PopNextState();
+        return false;
+    case EAttackState::Attack:
+        {
+            for (TArray<FActionAttackTargetData>::TIterator Ite(ActionResult.ActionAttackResult.AttackTargets); Ite; ++Ite)
+            {
+                //  お前はもう死んでいる
+                if (Ite->TargetUnit->IsDead()) {
+#if 0
+                    Ite->TargetUnit->SetVisible(false);
+#else
+                    Ite->TargetUnit->PlayAnimationDeath();
+#endif
+                }
+                else
+                {
+                    Ite->TargetUnit->PlayAnimationDamage();
+                }
+            }
+
+            PopNextState();
+        }
+        return false;
+    case EAttackState::End:
+        {
+            bool EndOfAnim = true;;
+            for (TArray<FActionAttackTargetData>::TIterator Ite(ActionResult.ActionAttackResult.AttackTargets); Ite; ++Ite)
+            {
+                //  アニメーションの終了まち
+                if (!Ite->TargetUnit->IsEndOfAnime()) {
+                    EndOfAnim = false;
+                }
+            }
+            if (EndOfAnim)
+            {
+                PopNextState();
+            }
+        }
+        return false;
+    case EAttackState::Wait:
+        {   // 指定秒数待ってから遷移移動
+            if (AttackStateStack.Num() > 0)
+            {
+                FAttackStateWaitData& WaitData = AttackStateStack.Last();
+                WaitData.WaitTime -= DeltaSecounds;
+                if (WaitData.WaitTime <= 0.0f)
+                {
+                    PopNextState();
+                }
+            }
+        }
+        return false;
+    case EAttackState::PlayAnimMove:
+        {
+            ActionResult.ActionUnit->PlayAnimationMove();
+            PopNextState();
+        }
+        return false;
+    case EAttackState::PlayAnimWait:
+        ActionResult.ActionUnit->PlayAnimationWait();
+        PopNextState();
+        return false;
+    case EAttackState::AnimeWaitEnd:
+        if (ActionResult.ActionUnit->IsEndOfAnime())
+        {
+            PopNextState();
+        }
+        return false;
+    case EAttackState::CameraFinishWait:
+        {
+            if (AttackCamera->IsFinished())
+            {
+                PopNextState();
+            }
+        }
+        return false;
+    case EAttackState::MoveBack:
+        AttackCamera->CameraActor->SetActorLocation(BackupCameraEye);
+        AttackCamera->CameraActor->SetActorRotation(BackupCameraRotator);
+        ActionResult.ActionUnit->Set3DLocation(BackupAttackUnitLocation);
+        ActionResult.ActionUnit->Set3DRotation(BackupAttackUnitRotator);
+
+        PopNextState();
+        return false;
     }
+
+
 
     return true;    //  trueで終了
 }
+
+
+void UBattleActionAttack::PushState(EAttackState NextState , float WaitTime )
+{
+    FAttackStateWaitData WaitData;
+    WaitData.NextState = NextState;
+    WaitData.WaitTime = WaitTime;
+    AttackStateStack.Add(WaitData);
+}
+
+
+//  スタックより次のステートへ移行
+void UBattleActionAttack::PopNextState()
+{
+    if (AttackStateStack.Num() > 0)
+    {
+        FAttackStateWaitData WaitData = AttackStateStack.Pop();
+        AttackState = WaitData.NextState;
+    }
+}
+
+

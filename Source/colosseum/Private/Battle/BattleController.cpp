@@ -210,6 +210,166 @@ bool ABattleController::IsMasoCDTrigger() const
     return InputMasoCD.Trigger;
 }
 
+void ABattleController::Motion0()
+{
+    InputBegin(&InputMotion0);
+}
+
+void ABattleController::ReleaseMotion0()
+{
+    InputRelease(&InputMotion0);
+}
+
+bool ABattleController::IsMotion0() const
+{
+    return InputMotion0.Coutinue;
+}
+
+bool ABattleController::IsMotion0Trigger() const
+{
+    return InputMotion0.Trigger;
+}
+
+void ABattleController::Motion1()
+{
+    InputBegin(&InputMotion1);
+}
+
+void ABattleController::ReleaseMotion1()
+{
+    InputRelease(&InputMotion1);
+}
+
+bool ABattleController::IsMotion1() const
+{
+    return InputMotion1.Coutinue;
+}
+
+bool ABattleController::IsMotion1Trigger() const
+{
+    return InputMotion1.Trigger;
+}
+
+void ABattleController::Motion2()
+{
+    InputBegin(&InputMotion2);
+}
+
+void ABattleController::ReleaseMotion2()
+{
+    InputRelease(&InputMotion2);
+}
+
+bool ABattleController::IsMotion2() const
+{
+    return InputMotion2.Coutinue;
+}
+
+bool ABattleController::IsMotion2Trigger() const
+{
+    return InputMotion2.Trigger;
+}
+
+void ABattleController::Motion3()
+{
+    InputBegin(&InputMotion3);
+}
+
+void ABattleController::ReleaseMotion3()
+{
+    InputRelease(&InputMotion3);
+}
+
+bool ABattleController::IsMotion3() const
+{
+    return InputMotion3.Coutinue;
+}
+
+bool ABattleController::IsMotion3Trigger() const
+{
+    return InputMotion3.Trigger;
+}
+
+void ABattleController::Motion4()
+{
+    InputBegin(&InputMotion4);
+}
+
+void ABattleController::ReleaseMotion4()
+{
+    InputRelease(&InputMotion4);
+}
+
+bool ABattleController::IsMotion4() const
+{
+    return InputMotion4.Coutinue;
+}
+
+bool ABattleController::IsMotion4Trigger() const
+{
+    return InputMotion4.Trigger;
+}
+
+void ABattleController::Motion5()
+{
+    InputBegin(&InputMotion5);
+}
+
+void ABattleController::ReleaseMotion5()
+{
+    InputRelease(&InputMotion5);
+}
+
+bool ABattleController::IsMotion5() const
+{
+    return InputMotion5.Coutinue;
+}
+
+bool ABattleController::IsMotion5Trigger() const
+{
+    return InputMotion5.Trigger;
+}
+
+void ABattleController::Motion6()
+{
+    InputBegin(&InputMotion6);
+}
+
+void ABattleController::ReleaseMotion6()
+{
+    InputRelease(&InputMotion6);
+}
+
+bool ABattleController::IsMotion6() const
+{
+    return InputMotion6.Coutinue;
+}
+
+bool ABattleController::IsMotion6Trigger() const
+{
+    return InputMotion6.Trigger;
+}
+
+void ABattleController::Motion7()
+{
+    InputBegin(&InputMotion7);
+}
+
+void ABattleController::ReleaseMotion7()
+{
+    InputRelease(&InputMotion7);
+}
+
+bool ABattleController::IsMotion7() const
+{
+    return InputMotion7.Coutinue;
+}
+
+bool ABattleController::IsMotion7Trigger() const
+{
+    return InputMotion7.Trigger;
+}
+
 
 void ABattleController::InputBegin(ABattleController::FButtonInputInfo* InputData) const
 {

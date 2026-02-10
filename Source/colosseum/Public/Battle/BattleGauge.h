@@ -8,7 +8,7 @@
 #include "BattleGauge.generated.h"
 
 /**
- * ƒQ[ƒW‚ÌƒEƒCƒWƒFƒbƒg
+ * ã‚²ãƒ¼ã‚¸ã®ã‚¦ã‚¤ã‚¸ã‚§ãƒƒãƒˆ
  */
 UCLASS()
 class COLOSSEUM_API UBattleGauge : public UUserWidget
@@ -16,14 +16,18 @@ class COLOSSEUM_API UBattleGauge : public UUserWidget
 	GENERATED_BODY()
 public:
 
-    // Œ»İ‚Ìƒ|ƒCƒ“ƒg‚ğİ’è
+    // ç¾åœ¨ã®ãƒã‚¤ãƒ³ãƒˆã‚’è¨­å®š
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
     void SetNowPoint(int NewNowPoint);
 
-    // Å‘åƒ|ƒCƒ“ƒg‚ğİ’è
+    // æœ€å¤§ãƒã‚¤ãƒ³ãƒˆã‚’è¨­å®š
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
     void SetMaxPoint(int NewMaxPoint);
 
+    // ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®åå‰ã‚’è¨­å®š
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void SetParameterName(FString NewParameterName);
+
 private:
-    int MaxPoint = 100; // Å‘åƒ|ƒCƒ“ƒg
+    int MaxPoint = 100; // æœ€å¤§ãƒã‚¤ãƒ³ãƒˆ
 };

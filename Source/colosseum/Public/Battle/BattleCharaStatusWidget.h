@@ -80,6 +80,9 @@ public:
     void SetMaxHp(int NewMaxHp);
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void SetHpName(FString HpName);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
     int GetMp() const;
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
@@ -91,6 +94,8 @@ public:
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
     void SetMaxMp(int NewMaxMp);
 
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void SetMpName(FString MpName);
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
     void OpenStatus();

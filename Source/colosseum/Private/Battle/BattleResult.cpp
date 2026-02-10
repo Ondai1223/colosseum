@@ -69,10 +69,6 @@ void ABattleResult::BeginResultState(ABattleGameMode* GameMode)
     }
 
 
-
-
-
-
     switch (GameMode->GetBattleResult())
     {
     case EBattleResult::EBR_Player1Win:

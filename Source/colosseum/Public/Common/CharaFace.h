@@ -39,6 +39,10 @@ public:
     void DeadMode();
     virtual void DeadMode_Implementation();
 
+    //  やじるし
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Common)
+    void SetArrow( bool arrow_on = false);
+    virtual void SetArrow_Implementation( bool arrow_on = false);
 public:
 
     //  ジョブID
@@ -56,4 +60,11 @@ public:
     //  アクション終了フラグ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Common)
     bool ActionEnd = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Common)
+    bool Arrow = false;
+
+private:
+
+
 };
