@@ -2,7 +2,7 @@
 
 **私の役割:** クライアントエンジニア (ロジック設計・実装担当)</br>
 **使用技術:** Unreal Engine 5, C++, Git/GitHub</br>
-**開発期間:** 2025年8月〜現在 (3ヶ月以上継続中)</br>
+**開発期間:** 2025年8月〜現在 (7ヶ月以上継続中)</br>
 
 
 ## 担当箇所
@@ -10,11 +10,34 @@
 
 | 項目 | 詳細 |
 | :--- | :--- |
-| **ファイル** | `Source/colosseum/private/Battle/Maso〜.cpp`, `Source/colosseum/public/Battle/Maso〜.h` 他 |
+| **ファイル** | `Source/colosseum/private/Battle/Maso〜.cpp`, `Source/colosseum/public/Battle/Maso〜.h`|
 | **挑戦内容** | ゲームの根幹となる魔素機能および、それに伴う状態管理システムの設計と実装。 |
 | **技術的貢献** | **【設計思想】** **ポリモーフィズム**を徹底し、魔素システムを構築。C++の**抽象基底クラス（インターフェイス）**を定義することで、**依存関係逆転の原則（DIP）**と**開放/閉鎖原則（OCP）**を実践しました。これにより、新しい属性の追加時に既存のコアコードを一切変更しない、**極めて高い拡張性**を実現しています。 |
 | **成果と学び** | プロのサポートを受けながらこのロジックを一人で実装。**オブジェクト指向設計の原則**を実践形式で深く理解しました。 |
 
+| 項目 | 詳細 |
+| :--- | :--- |
+| **ファイル** | `Source/colosseum/private/Battle/BattleActionAttack.cpp`, `Source/colosseum/public/Battle/BattleActionAttack.h`|
+| **挑戦内容** | 今回のゲーム制作の最初に実装した攻撃コマンド。初めてのC++で機能を実装することに挑戦した。 |
+| **技術的貢献** | |
+| **成果と学び** | プロのサポートを多く受けながらこ実装。設計というよりC++のチュートリアルとして学習した。プロの方にゲームの作り方を教わった。 |
+
+(途中)
+| 項目 | 詳細 |
+| :--- | :--- |
+| **ファイル** | `Source/colosseum/private/Battle/BattleGameMode.cpp`, `Source/colosseum/public/Battle/BattleGameMode.h`, `Source/colosseum/private/Battle/BattleGameMain.cpp`, `Source/colosseum/public/Battle/BattleGameMain.h`|
+| **挑戦内容** |  |
+| **技術的貢献** | カーソル、モーション、エフェクトなどの実装に貢献 |
+| **成果と学び** |  |
+
+
+(途中)
+| 項目 | 詳細 |
+| :--- | :--- |
+| **ファイル** | `Source/colosseum/private/Title/*.cpp`, `Source/colosseum/public/Title/*.h`|
+| **挑戦内容** |  |
+| **技術的貢献** | タイトル画面の実装 |
+| **成果と学び** |  |
 ---
 
 ### 2. Unreal Engine特有の課題への対応と学習
