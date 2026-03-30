@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "Battle/UnitBattleParameter.h"
 #include "Battle/ActionResultData.h"
+#include "Battle/SkillData.h"
 #include "BattleActionInterface.generated.h"
 
 class ABattleGameMode;
@@ -20,6 +21,7 @@ class UBattleActionInterface : public UInterface
 
 #define BATTLE_ACTION_SKILL_SELECT_CANSEL  -2   //  スキル選択キャンセル
 #define BATTLE_ACTION_SKILL_SELECT_RUN      -1  //  スキル選択実行中
+#define BATTLE_ACTION_SKILL_SELECT_DECIDE    0  //  スキル選択決定（IDではなくステータスとして扱う）
 
 /**
  * バトルアクションインターフェース
@@ -35,7 +37,7 @@ public:
     //  CenterGameX     :   中心となるX座標
     //  CenterGameY     :   中心となるX座標
     //  GameMode        :   ゲームモード
-    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID) {}
+    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) {}
 
 
     //  スキル選択開始
@@ -47,14 +49,14 @@ public:
     //  -1でまだ選択が終わっていない
     //  -2でキャンセル
     //  0以上で選択したスキル
-    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode) { return -2; }
+    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData) { return -2; }
     //  アクション計算
     //  ActionResult    :   アクション結果格納先
     //  TargetLocations :   ターゲットするゲーム座標
     //  ActionUnit      :   アクションを起こすユニット
     //  GameMode        :   ゲームモード
     //  SkillID         :   スキルID(特技を選択した時のみ有効）
-    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID) {}
+    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) {}
 
     //  アクション結果を反映
     //  ActionResult    :   結果格納先

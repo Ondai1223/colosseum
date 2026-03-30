@@ -7,22 +7,13 @@
 #include "Unit/UnitTeamID.h"
 #include "NiagaraSystem.h"
 #include "Unit/Unit.h"
+#include "RoleSelect/RoleSelectENums.h"
 #include "Battle/BattleController.h"
 #include "RoleArrangementUnitStage.generated.h"
 
-UENUM(BlueprintType)
-enum class EAUState : uint8
-{
-    EAUState_None               UMETA(DisplayName = "何もしない"),
-    EAUState_Begin              UMETA(DisplayName = "開始"),
-    EAUState_SelectPosition     UMETA(DisplayName = "配置処理"),
-    EAUState_Selected           UMETA(DisplayName = "配置した"),
-    EAUState_SelectPositionCansel UMETA(DisplayName = "配置キャンセル"),
-    EAUState_ReadyWait          UMETA(DisplayName = "確定待ち"),
-    EAUState_Ready              UMETA(DisplayName = "準備OK"),
 
 
-};
+class ARoleSelectPlayerState;
 
 UCLASS(BlueprintType)
 class COLOSSEUM_API ARoleArrangementUnitStage : public AActor
@@ -41,6 +32,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+
+
+
+
 
 public:
     //  カーソルモデルの作成
@@ -70,7 +66,7 @@ public:
 
 //    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
     TObjectPtr<AUnit> SearchUnitFromPosition(int X, int Y);
-    TObjectPtr<AUnit> SearchUnitFromPosition(int X, int Y,TArray<TObjectPtr<AUnit>>& Units);
+    TObjectPtr<AUnit> SearchUnitFromPosition(int X, int Y,TArray<TObjectPtr<AUnit>>& Units , bool visible = true);
 
 
     //  ユニット3D座標取得
@@ -82,19 +78,41 @@ public:
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
     EUnitJob GetLastArrangementUnitJob() const;
 
+
+
+    void VisibleArrangementUnit();
+
+    void ClearArrangementUnit(TArray<TObjectPtr<AUnit>>& Units);
+    //  ロード済みユニットをすべて非表示にする
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ClearArrangementUnit();
+
+
     //  ユニット配置
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
-    void TickArrangementUnit(float DeltaTime, ABattleController* Controller);
+    void TickArrangementUnit(float DeltaTime, ABattleController* Controller,ARoleSelectPlayerState* PlayerState);
 
 
 
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void CalcUnitPosition();
 
+
+
+    TObjectPtr<AUnit> GetSelectUnit(EUnitJob Job) const;
+
+
+    void BeginArrangementUnitStage();
 
 public:
     //　ステータス
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     EAUState    StartPositionState = EAUState::EAUState_None;
 
+
+    //  ネゴシエーション完了待ちしたあとに飛ぶステータス
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
+    EAUState    EventNextState = EAUState::EAUState_None;
 
     //  ユニットジョブの設定
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
@@ -147,7 +165,7 @@ public:
 
     //  ユニットカーソル位置
     struct {
-        int X = 0;
+        int X = 1;
         int Y = 0;
     }UnitPosition;
 

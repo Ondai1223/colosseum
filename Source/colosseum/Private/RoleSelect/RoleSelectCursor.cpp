@@ -74,7 +74,7 @@ void ARoleSelectCursor::SetCursorPosition(int X, int Y)
         RoleSelectHelper    helper;
 
         FVector location = helper.Calc3DLocation(X, Y);
-        CursorModel->SetWorldLocation(location);
+        CursorModel->SetRelativeLocation(location);
     }
 
     MoveCursorData.X = X;
@@ -112,7 +112,7 @@ bool ARoleSelectCursor::MoveCursor(float DeltaTime,FVector* NowLocation)
 
     if (CursorModel)
     {
-        CursorModel->SetWorldLocation(Result);
+        CursorModel->SetRelativeLocation(Result);
     }
 
     if (NowLocation)

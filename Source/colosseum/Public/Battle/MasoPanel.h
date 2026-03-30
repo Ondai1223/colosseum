@@ -53,6 +53,9 @@ public:
 public:
 	FMasoPanelData* PanelDataPtr;
 
+	int PanelX;
+	int PanelY;
+
 private:
 	UPROPERTY(Transient)
 	TMap<int32, FMasoPanelData> MasoPanelDataMap; // パネルのデータを所持する配列.

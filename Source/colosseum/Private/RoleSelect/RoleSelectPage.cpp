@@ -6,7 +6,9 @@
 #include "RoleSelect/RoleArrangementUnitStage.h"
 #include "EngineUtils.h"
 #include "Camera/CameraComponent.h"
+#include "RoleSelect/RoleSelectPlayerState.h"
 #include "RoleSelect/RoleSelectScreen.h"
+#include "RoleSelect/RoleSelectGameState.h"
 
 #define ROLE_UNIT_ARRANGMENT_P1 TEXT("")
 #define ROLE_SELECT_TIME    0.5f
@@ -74,6 +76,12 @@ void URoleSelectPage::NextSlot_Implementation()
 {
     ;
 }
+
+void URoleSelectPage::SetSlotIndex_Implementation(int SlotIndex)
+{
+    ;
+}
+
 
 void URoleSelectPage::PrevSlot_Implementation()
 {
@@ -156,107 +164,394 @@ FQuat URoleSelectPage::GetRolequat(EUnitJob job) const
 }
 
 
+
 void URoleSelectPage::CalcRoleLoop()
 {
     FQuat BeforeQuat = GetRolequat(SelecteBeforedJob);
     FQuat NextQuat = GetRolequat(SelectedJob);
-    FQuat Result = FQuat::Slerp(BeforeQuat, NextQuat, FMath::Sin(FMath::DegreesToRadians(ROLE_SELECT_MOVE_PARAMETER) * RoleSelecter->CalcLerp()));
+    float lerp = FMath::Sin(FMath::DegreesToRadians(ROLE_SELECT_MOVE_PARAMETER) * RoleSelecter->CalcLerp());
+    FQuat Result = FQuat::Slerp(BeforeQuat, NextQuat,lerp );
     RoleSelectScreen->RoleSelectCamera->SetRelativeRotation(Result);
 }
 
 
 
-void URoleSelectPage::TickSlotProc(ABattleController* BattleController, float DT)
+
+void URoleSelectPage::ChangeState_Selecting(ARoleSelectPlayerState* PlayerState,bool NotSendCommand)
 {
-    if (!BattleController || !RoleSelectScreen)
+    PageSetup();
+    CreateRoleSelecter();
+    SetRoleSelectArrow();
+    RoleSelecterNormal();
+
+    RoleSelecter->Startup();
+    RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
+    RoleSelecter->NowTime = RoleSelecter->MaxTime;
+
+    SelectedJob = GetRoleSelectFromCursorIndex();
+
+    SetRoleNameInfoFromJobID(SelectedJob);
+    ClearRoleSelectArrow();
+    SetRoleSelectArrow();
+    CalcRoleLoop();
+
+    if (NotSendCommand == false)
+    {   //  ロール選択時間の同期
+
+        PlayerState->SetReplicated_RoleSelectJobBefore(SelecteBeforedJob);
+        PlayerState->SetReplicated_RoleSelectJob(SelectedJob);
+        PlayerState->SetReplicated_RoleSelectIndex(RoleSelectIndex);
+
+        PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->NowTime);
+        PlayerState->SetReplicated_RoleSelectTimeMax(RoleSelecter->MaxTime);
+
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_SelectingAnim);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_SelectingAnim;
+}
+
+
+void URoleSelectPage::ChangeState_SelectingNext(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    ChangeState_Selecting(PlayerState, NotSendCommand);
+
+    SelectedJob = GetRoleSelectFromCursorIndex();
+    RoleSelecter->Startup();
+    SetRoleNameInfoFromJobID(GetRoleSelectFromCursorIndex());
+    ClearRoleSelectArrow();
+    SetRoleSelectArrow();
+
+    SetRoleNameInfoFromJobID(SelectedJob);
+    SetRoleSelectArrow();
+    CalcRoleLoop();
+
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_RoleSelectJobBefore(SelecteBeforedJob);
+        PlayerState->SetReplicated_RoleSelectJob(SelectedJob);
+        PlayerState->SetReplicated_RoleSelectIndex(RoleSelectIndex);
+        PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->NowTime);
+        PlayerState->SetReplicated_RoleSelectTimeMax(RoleSelecter->MaxTime);
+
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_SelectingAnim);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_SelectingAnim;
+}
+
+
+
+
+
+
+bool URoleSelectPage::ChangeState_BeforeSlot(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    //  キャンセルトリガ入力
+    //  前のスロットへ
+    int BackupSlotNo = 0;
+    int NextSlotNo = 0;
+    if (RoleArrangementUnitStage)
+    {
+        BackupSlotNo = RoleArrangementUnitStage->SlotNo;
+    }
+    PrevSlot();
+    if (RoleArrangementUnitStage)
+    {
+        NextSlotNo = RoleArrangementUnitStage->SlotNo;
+    }
+
+    if (BackupSlotNo != NextSlotNo)
+    {
+        //  ロール選択へ
+        EUnitJob    jobid = RoleArrangementUnitStage->GetLastArrangementUnitJob();
+
+        SetRoleNameInfoFromJobID(jobid);
+        SelectedJob = jobid;
+        SelecteBeforedJob = jobid;
+
+        PageSetup();
+        RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
+        RoleSelecter->NowTime = RoleSelecter->MaxTime;
+        ArrangementSetup();
+
+        if (NotSendCommand == false)
+        {
+            PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->NowTime);
+            PlayerState->SetReplicated_RoleSelectTimeMax(RoleSelecter->MaxTime);
+            PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_Begin);
+        }
+        
+
+        RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
+        SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
+    }
+    return BackupSlotNo != NextSlotNo;
+}
+
+void URoleSelectPage::ChangeState_RoleSelectingToNone(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    RoleSelecterClose();
+    RoleSelecterDark();
+    ClearRoleSelectArrow();
+    //PrevSlot();
+    ActiveSlot();
+    RoleSelecter->NowTime = RoleSelecter->MaxTime;
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->MaxTime);
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_None);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_None;
+}
+
+
+void URoleSelectPage::ChangeState_ToArrangement(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_Begin);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
+    ArrangementSetup();
+    RoleArrangementUnitStage->JobID = SelectedJob;
+    RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
+    RoleArrangementUnitStage->BeginArrangementUnitStage();
+}
+
+
+void URoleSelectPage::ChangeState_PositionSet(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    //  選択したユニットデータを取得
+
+    //  一気に一番下の階層に戻る
+
+    if (RoleArrangementUnitStage && RoleArrangementUnitStage->SelectUnit)
+    {
+        FUnitData   UnitData;
+        UnitData = RoleArrangementUnitStage->SelectUnit->GetUnitData();
+        RoleArrangementUnitStage->ResultUnitDatas.Add(UnitData);
+    }
+
+    //  一つ上を閉じる
+    ArrangementClose();
+    //  二つ上を閉じる
+    //RoleSelecterClose();
+    RoleSelecterDark();
+    ClearRoleSelectArrow();
+    //  次のスロットへ
+    NextSlot();
+
+
+    //  配置処理は待機へ
+    if (NotSendCommand == false)
+    {
+//        RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_None;
+        PlayerState->SetReplicated_ArrangementUnitState(RoleArrangementUnitStage->StartPositionState);
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_None);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_None;
+}
+
+
+void URoleSelectPage::ChangeState_ReadyWait(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_ArrangementUnitState(RoleArrangementUnitStage->StartPositionState);
+    }
+
+
+    if (RoleArrangementUnitStage && RoleArrangementUnitStage->SelectUnit)
+    {
+        FUnitData   UnitData;
+        UnitData = RoleArrangementUnitStage->SelectUnit->GetUnitData();
+        RoleArrangementUnitStage->ResultUnitDatas.Add(UnitData);
+    }
+
+
+    //  一つ上を閉じる
+    ArrangementClose();
+    RoleSelecterClose();
+    ClearRoleSelectArrow();
+    //  ロール確定判定へ
+    NextSlot();
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERRSS_CheckReady);
+    }
+    SlotState = ERpoleSelectSlotState::ERRSS_CheckReady;
+}
+
+void URoleSelectPage::ChangeState_SelectPositionCansel(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    //  配置をキュンセルしロール画面へ戻る
+    ArrangementClose();
+
+    RoleSelecterOpen();
+    RoleSelecterNormal();
+
+    //  処理待機
+    RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_None;
+    RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
+    RoleSelecter->NowTime = RoleSelecter->MaxTime;
+
+
+    if (RoleArrangementUnitStage->SelectUnit)
+    {
+        RoleArrangementUnitStage->SelectUnit->SetVisible(false);
+    }
+
+    SetRoleSelectCursorPosition(SelectedJob, (NotSendCommand == false) ? PlayerState:nullptr);
+
+    if (NotSendCommand == false)
+    {
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_Selecting);
+//        PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_Begin);
+    }
+    SlotState = ERpoleSelectSlotState::ERSSS_Selecting;
+
+}
+#if 0
+void URoleSelectPage::ChangeState_ArrangementCansel(ARoleSelectPlayerState* PlayerState, bool NotSendCommand)
+{
+    if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_SelectPositionCansel)
+    {
+        RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_None;
+//        PlayerState->SlotState = ERpoleSelectSlotState::ERSSS_Selecting;
+        RoleSelecter->NowTime = RoleSelecter->MaxTime;
+        SelectedJob = RoleArrangementUnitStage->JobID;
+        SelecteBeforedJob = SelectedJob;
+        RoleSelectIndex = GetRoleSelectCursorIndex(SelectedJob);
+
+        if (RoleArrangementUnitStage->SelectUnit)
+        {
+            RoleArrangementUnitStage->SelectUnit->SetVisible(false);
+            RoleArrangementUnitStage->SelectUnit = nullptr;
+        }
+        if (NotSendCommand == false)
+        {
+            PlayerState->SetReplicated_RoleSelectIndex(RoleSelectIndex);
+            PlayerState->SetReplicated_RoleSelectJob(SelectedJob);
+            PlayerState->SetReplicated_RoleSelectJobBefore(SelecteBeforedJob);
+            PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->NowTime);
+            PlayerState->SetReplicated_RoleSelectTimeMax(RoleSelecter->MaxTime);
+            PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_SelectingNext);
+        }
+        else
+        {
+            SlotState = ERpoleSelectSlotState::ERSSS_SelectingNext;
+        }
+    }
+}
+#endif
+
+
+void URoleSelectPage::ChangeState_ReadyCansel(ARoleSelectPlayerState* PlayerState,bool NotSendCommand)
+{
+    RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
+    EUnitJob jobid = RoleArrangementUnitStage->JobID;
+    SetRoleNameInfoFromJobID(jobid);
+    PageSetup();
+    RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
+    RoleSelecter->NowTime = RoleSelecter->MaxTime;
+    ArrangementSetup();
+
+    RoleArrangementUnitStage->SelectUnit = RoleArrangementUnitStage->GetSelectUnit(SelectedJob);
+
+
+    PrevSlot();
+    if (NotSendCommand == false)
+    {
+//        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_Arrangement);
+        PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_Begin);
+    }
+
+    SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
+    RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
+}
+
+
+
+void URoleSelectPage::TickSlotProc(ARoleSelectPlayerState* PlayerState,ABattleController* BC, float DT)
+{
+    if (!PlayerState || !RoleSelectScreen)
     {
         return;
     }
 
 
-    int PlayerIndex = BattleController->NetPlayerIndex;
+    ABattleController* BattleController = BC;
 
 
+
+    UWorld* World = GetWorld();
+
+    TObjectPtr<ARoleSelectGameState> GameState = Cast<ARoleSelectGameState>(World->GetGameState());
+    EBattleGameMode GameMode = GameState->GameMode;
+
+    switch (GameMode)
+    {
+    case EBattleGameMode::EBGM_Player_VS_NPC:
+        //  プレイヤーVS NPC
+        if (BattleController == nullptr)
+        {
+            //  COM戦
+            return;
+        }
+        break;
+    case EBattleGameMode::EBGM_Player_VS_Player:
+        //  プレイヤーVS プレイヤー
+        if (!BattleController)
+        {
+            return;
+        }
+        break;
+    case EBattleGameMode::EBGM_Player_VS_NET:
+        if (World->GetGameState()->HasAuthority() == false)
+        {
+//            UE_LOG(LogTemp, Warning, TEXT("URoleSelectPage::TickSlotProc Client"));
+        }
+        else
+        {
+//            UE_LOG(LogTemp, Warning, TEXT("URoleSelectPage::TickSlotProc Server"));
+        }
+
+        if (!BattleController)
+        {
+            return;
+        }
+        break;
+    default:
+        return;
+    }
 
 
     switch (SlotState)
     {
-        case ERpoleSelectSlotState::ERSSS_None:
+    case ERpoleSelectSlotState::ERSSS_None:
         {
-
-            FVector2D LeftAxis = BattleController->GetLeftAxis();
-
-
             if (BattleController->IsOkTrigger())
             {
-                //  決定トリガ入力
-                SlotState = ERpoleSelectSlotState::ERSSS_Selecting;
                 //  ロール選択へ
-                PageSetup();
-               CreateRoleSelecter();
-                SetRoleSelectArrow();
-                RoleSelecterNormal();
-
-
-
-                RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_Selecting);
+                ChangeState_Selecting(PlayerState);
                 break;
 
             }
             if (BattleController->IsCanselTrigger())
             {
-                //  キャンセルトリガ入力
-                //  前のスロットへ
-                int BackupSlotNo = 0;
-                int NextSlotNo = 0;
-                if (RoleArrangementUnitStage)
-                {
-                    BackupSlotNo = RoleArrangementUnitStage->SlotNo;
-                }
-                PrevSlot();
-                if (RoleArrangementUnitStage)
-                {
-                    NextSlotNo = RoleArrangementUnitStage->SlotNo;
-                }
-
-                if (BackupSlotNo != NextSlotNo)
-                {
-                    SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
-                    //  ロール選択へ
-                    EUnitJob    jobid = RoleArrangementUnitStage->GetLastArrangementUnitJob();
-
-                    SetRoleNameInfoFromJobID(jobid);
-                    SelectedJob = jobid;
-                    SelecteBeforedJob = jobid;
-
-                    PageSetup();
-                    RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
-                    RoleSelecter->NowTime = RoleSelecter->MaxTime;
-                    ArrangementSetup();
-                    RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
-                    break;
-                }
-            }
-
-            if (LeftAxis.Length() > FLT_EPSILON) {
-                float AbsX = FMath::Abs(LeftAxis.X);
-                float AbsY = FMath::Abs(LeftAxis.Y);
-                if (AbsX > AbsY)
-                {
-
-                }
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_BeforeSlot);
+                ChangeState_BeforeSlot(PlayerState);
+                break;
             }
         }
         break;
+    case ERpoleSelectSlotState::ERSSS_SlotCansel:
+        
+        break;
     case ERpoleSelectSlotState::ERSSS_Selecting:
         //  職業選択
-
-        RoleSelecter->AddDT(DT);
-
-
+        RoleSelecter->NowTime = RoleSelecter->MaxTime;
         CalcRoleLoop();
-        if (RoleSelecter->IsEnd())
         {
             FVector2D LeftAxis = BattleController->GetLeftAxis();
 
@@ -264,19 +559,14 @@ void URoleSelectPage::TickSlotProc(ABattleController* BattleController, float DT
             if (BattleController->IsOkTrigger())
             {
                 //  配置画面へ
-                SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
-                ArrangementSetup();
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_ToArrangement);
+                ChangeState_ToArrangement(PlayerState);
                 break;
             }
             if (BattleController->IsCanselTrigger())
             {
-                SlotState = ERpoleSelectSlotState::ERSSS_None;
-                RoleSelecterClose();
-                RoleSelecterDark();
-                ClearRoleSelectArrow();
-                //PrevSlot();
-                ActiveSlot();
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_RoleSelectingToNone);
+                ChangeState_RoleSelectingToNone(PlayerState);
                 break;
             }
 
@@ -287,107 +577,146 @@ void URoleSelectPage::TickSlotProc(ABattleController* BattleController, float DT
 
 
 
-                SelecteBeforedJob = GetRoleSelectFromCursorIndex();
 
                 if (AbsX > AbsY)
                 {
+                    SelecteBeforedJob = GetRoleSelectFromCursorIndex();
+                    int RSIndex = RoleSelectIndex;
                     if (LeftAxis.X < 0.0f)
                     {
-                        --RoleSelectIndex;
+                        --RSIndex;
                         //  右
-                        if (RoleSelectIndex < 0)
+                        if (RSIndex < 0)
                         {
-                            RoleSelectIndex += RoleSelectCharFace.Num();
+                            RSIndex += RoleSelectCharFace.Num();
                         }
                     }
                     if (LeftAxis.X > 0.0f)
                     {
                         //  左
-                        ++RoleSelectIndex;
-                        if (RoleSelectIndex >= RoleSelectCharFace.Num())
+                        ++RSIndex;
+                        if (RSIndex >= RoleSelectCharFace.Num())
                         {
-                            RoleSelectIndex -= RoleSelectCharFace.Num();
+                            RSIndex -= RoleSelectCharFace.Num();
                         }
                     }
+                    RoleSelectIndex = RSIndex;
                     SelectedJob = GetRoleSelectFromCursorIndex();
+                    SetRoleSelectCursorPosition(GetRoleSelectFromCursorIndex(), PlayerState);
+
 
                     RoleSelecter->Startup();
-
-                    ClearRoleSelectArrow();
-                    SetRoleSelectArrow();
-                    SetRoleNameInfoFromJobID(GetRoleSelectFromCursorIndex());
+                    ChangeState_SelectingNext(PlayerState);
+#if 0
+                    PlayerState->SetReplicated_RoleSelectJobBefore(SelecteBeforedJob);
+                    PlayerState->SetReplicated_RoleSelectIndex(RoleSelectIndex);
+                    PlayerState->SetReplicated_RoleSelectJob(SelectedJob);
+                    PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_SelectingAnim);
+                    SlotState = ERpoleSelectSlotState::ERSSS_SelectingAnim;
+#endif
                 }
-            }
-        }
-        break;
-
-    case ERpoleSelectSlotState::ERSSS_Arrangement:
-        //  配置
-        if (RoleArrangementUnitStage)
-        {
-            if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_Selected)
-            {
-                //  選択したユニットデータを取得
-
-                //  一気に一番下の階層に戻る
-
-                //  一つ上を閉じる
-                ArrangementClose();
-                //  二つ上を閉じる
-                //RoleSelecterClose();
-                RoleSelecterDark();
-                ClearRoleSelectArrow();
-                //  次のスロットへ
-                NextSlot();
-
-
-                //  配置処理は待機へ
-                RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_None;
-
-                SlotState = ERpoleSelectSlotState::ERSSS_None;
-            }
-            else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_ReadyWait)
-            {
-                //  一つ上を閉じる
-                ArrangementClose();
-                RoleSelecterClose();
-                ClearRoleSelectArrow();
-                //  ロール確定判定へ
-                NextSlot();
-                SlotState = ERpoleSelectSlotState::ERRSS_CheckReady;
-            }
-            else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_SelectPositionCansel)
-            {
-                //  配置をキュンセルしロール画面へ戻る
-                ArrangementClose();
-
-                RoleSelecterOpen();
-                RoleSelecterNormal();
-
-                //  処理待機
-                RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_SelectPositionCansel;
-                SlotState = ERpoleSelectSlotState::ERRSS_ArrangementCansel;
-                RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
-
-                SetRoleSelectCursorPosition(SelectedJob);
-            }
-        }
-        break;
-
-    case ERpoleSelectSlotState::ERRSS_ArrangementCansel:
-        //  ユニット配置キャンセル
-        if (RoleArrangementUnitStage)
-        {
-            if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_SelectPositionCansel)
-            {
-                RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_None;
-                SlotState = ERpoleSelectSlotState::ERSSS_Selecting;
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
                 break;
             }
         }
         break;
+
+    case ERpoleSelectSlotState::ERSSS_SelectingNext:
+        ChangeState_SelectingNext(PlayerState);
+        break;
+    case ERpoleSelectSlotState::ERSSS_SelectingAnim:
+        RoleSelecter->AddDT(DT);
+//        PlayerState->SetReplicated_RoleSelectTime(RoleSelecter->NowTime);
+        CalcRoleLoop();
+
+        if(RoleSelecter->IsEnd())
+        {
+            PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_Selecting);
+            SlotState = ERpoleSelectSlotState::ERSSS_Selecting;
+        }
+        else
+        {
+            //  ここでコマンドを発行しておかないと計算が行われない。
+            PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_SelectingAnim);
+            SlotState = ERpoleSelectSlotState::ERSSS_SelectingAnim;
+        }
+        break;
+    case ERpoleSelectSlotState::ERSSS_SelectingCansel:
+        //  ロールセレクタキャンセル
+        PlayerState->SetReplicated_RoleSelectState(ERoleSelectState::ERS_None);
+        PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_None);
+        SlotState = ERpoleSelectSlotState::ERSSS_None;
+        break;
+    case ERpoleSelectSlotState::ERSSS_Arrangement:
+        //  配置
+        if (RoleArrangementUnitStage == nullptr)
+        {
+            ArrangementSetup();
+        }
+        {
+#if 0
+            PlayerState->SetReplicated_ArrangementStartPosX(RoleArrangementUnitStage->UnitPosition.X);
+            PlayerState->SetReplicated_ArrangementStartPosY(RoleArrangementUnitStage->UnitPosition.Y);
+            PlayerState->SetReplicated_ArrangementUnitState(RoleArrangementUnitStage->StartPositionState);
+#endif
+//            RoleArrangementUnitStage->CalcUnitPosition();
+
+            switch (RoleArrangementUnitStage->StartPositionState)
+            {
+            case EAUState::EAUState_Begin:
+                PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERSSS_Arrangement);
+                SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
+                break;
+            case EAUState::EAUState_Selected:
+                ChangeState_PositionSet(PlayerState);
+                break;
+            case EAUState::EAUState_ReadyWait:
+                ChangeState_ReadyWait(PlayerState);
+                break;
+            case EAUState::EAUState_SelectPositionCansel:
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_SelectPositionCansel);
+                ChangeState_SelectPositionCansel(PlayerState);
+                break;
+            case EAUState::EAUState_StartPosX:
+                PlayerState->SetReplicated_ArrangementStartPosX(RoleArrangementUnitStage->UnitPosition.X);
+                RoleArrangementUnitStage->CalcUnitPosition();
+                break;
+            case EAUState::EAUState_StartPosY:
+                PlayerState->SetReplicated_ArrangementStartPosY(RoleArrangementUnitStage->UnitPosition.Y);
+                RoleArrangementUnitStage->CalcUnitPosition();
+                break;
+            }
+#if 0
+            if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_Selected)
+            {
+                //  選択したユニットデータを取得
+                //PlayerState->SendServerMessage(ARRANGEMENT_SYNC_SELECTED);
+                ChangeState_PositionSet(PlayerState);
+            }
+            else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_ReadyWait)
+            {
+                //  一つ上を閉じる
+                //PlayerState->SendServerMessage(ARRANGEMENT_SYNC_READY_WAIT);
+                ChangeState_ReadyWait(PlayerState);
+            }
+            else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_SelectPositionCansel)
+            {
+                //  キャンセル
+                //PlayerState->SendServerMessage(ARRANGEMENT_SYNC_CANSEL);
+                ChangeState_SelectPositionCansel(PlayerState);
+            }
+#endif
+        }
+        break;
+
+#if 0
+    case ERpoleSelectSlotState::ERRSS_ArrangementCansel:
+        //  ユニット配置キャンセル
+        if (RoleArrangementUnitStage)
+        {
+            ChangeState_ArrangementCansel(PlayerState,true);
+        }
+        break;
+#endif
     case ERpoleSelectSlotState::ERRSS_CheckReady:
         if (RoleArrangementUnitStage)
         {
@@ -395,26 +724,16 @@ void URoleSelectPage::TickSlotProc(ABattleController* BattleController, float DT
             {
                 //  最終確認キャンセルへ
                 //  ユニット配置に戻る
-                RoleArrangementUnitStage->StartPositionState = EAUState::EAUState_Begin;
-                SlotState = ERpoleSelectSlotState::ERSSS_Arrangement;
-
-
-                EUnitJob jobid = RoleArrangementUnitStage->JobID;
-                SetRoleNameInfoFromJobID(jobid);
-                PageSetup();
-                RoleSelecter->SetMaxTime(ROLE_SELECT_TIME);
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
-                ArrangementSetup();
-                PrevSlot();
-                RoleSelecter->NowTime = RoleSelecter->MaxTime;
-
-
-
+//                PlayerState->SendServerMessage(ARRANGEMENT_SYNC_READY_CANCEL);
+                PlayerState->SetReplicated_CallID(ERoleSelectCallID::ERSCID_ChangeState_ReadyCansel);
+                ChangeState_ReadyCansel(PlayerState);
                 break;
             }
 
             if (BattleController->IsOkTrigger())
             {
+//                PlayerState->SendServerMessage(ARRANGEMENT_SYNC_READY);
+                PlayerState->SetReplicated_SlotState(ERpoleSelectSlotState::ERRSS_Ready);
                 SlotState = ERpoleSelectSlotState::ERRSS_Ready;
                 //  出撃準備完了へ
                 GetReady();
@@ -422,12 +741,294 @@ void URoleSelectPage::TickSlotProc(ABattleController* BattleController, float DT
             }
 
         }
-
-
         break;
     }
 
 }
+
+
+void URoleSelectPage::TickSlotNetWorkProc(ARoleSelectPlayerState* PlayerState, float DT)
+{
+    FRoleSelectStateData    DataState;
+    while (!PlayerState->RoleSelectStateDataFIFO.IsEmpty() || PlayerState->NowDataState.IsStayApply)
+    {
+        if (!PlayerState->RoleSelectStateDataFIFO.IsEmpty())
+        {   //  コマンドバッファにデータがある場合はそちらを優先して処理する
+            //  前回の処理が完了していない場合は同じ内容で処理を行う
+            DataState = PlayerState->RoleSelectStateDataFIFO.Last();
+
+            if (DataState.IsStayApply)
+            {
+                PlayerState->NowDataState = DataState;
+            }
+
+        }
+        else
+        {
+            //  コマンドバッファにデータがない場合は前回の内容で処理を行う
+            DataState = PlayerState->NowDataState;
+            if (DataState.IsStayApply == false)
+            {
+                //  前回の処理が完了している場合は終了
+                return;
+            }
+        }
+        switch (DataState.DataType)
+        {
+        case ERoleSelectDataType::ERSDT_None:
+            break;
+        case ERoleSelectDataType::ERSDT_Nagosiation:
+            break;
+        case ERoleSelectDataType::ERSDT_SlotState:
+            switch (DataState.SlotState)
+            {
+            case ERpoleSelectSlotState::ERSSS_None:
+                break;
+            case ERpoleSelectSlotState::ERSSS_SlotCansel:
+                ChangeState_BeforeSlot(PlayerState, true);
+                break;
+            case ERpoleSelectSlotState::ERSSS_Selecting:
+                RoleSelecter->NowTime = RoleSelecter->MaxTime;
+                CalcRoleLoop();
+                break;
+            case ERpoleSelectSlotState::ERSSS_SelectingAnim:
+                RoleSelectIndex = PlayerState->GetReplicated_RoleSelectIndex();
+//                RoleSelecter->MaxTime = PlayerState->GetReplicated_RoleSelectTimeMax();
+//                RoleSelecter->NowTime = PlayerState->GetReplicated_RoleSelectTime();
+                SelecteBeforedJob = PlayerState->GetReplicated_RoleSelectJobBefore();
+                SelectedJob = PlayerState->GetReplicated_RoleSelectJob();
+                RoleSelecter->AddDT(DT);
+                CalcRoleLoop();
+                ClearRoleSelectArrow();
+                SetRoleSelectArrow();
+                SetRoleNameInfoFromJobID(GetRoleSelectFromCursorIndex());
+                break;
+            case ERpoleSelectSlotState::ERSSS_SelectingNext:
+                break;
+            case ERpoleSelectSlotState::ERSSS_SelectingCansel:
+                break;
+#if 1
+            case ERpoleSelectSlotState::ERSSS_Arrangement:
+
+                if (RoleArrangementUnitStage)
+                {
+                    switch (DataState.ArrangementUnitState)
+                    {
+
+                    case EAUState::EAUState_None:
+                        break;
+                    case EAUState::EAUState_Begin:
+                        //  起動
+                        ArrangementSetup();
+                        RoleArrangementUnitStage->JobID = SelectedJob;
+                        RoleArrangementUnitStage->BeginArrangementUnitStage();
+                        break;
+
+                    case EAUState::EAUState_SelectPosition:
+                        break;
+                    case EAUState::EAUState_Selected:
+                        ChangeState_PositionSet(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_SelectPositionCansel:
+                        ChangeState_SelectPositionCansel(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_StartPosX:
+                        RoleArrangementUnitStage->UnitPosition.X = PlayerState->GetReplicated_ArrangementStartPosX();
+                        RoleArrangementUnitStage->CalcUnitPosition();
+                        break;
+                    case EAUState::EAUState_StartPosY:
+                        RoleArrangementUnitStage->UnitPosition.Y = PlayerState->GetReplicated_ArrangementStartPosY();
+                        RoleArrangementUnitStage->CalcUnitPosition();
+                        break;
+                    case EAUState::EAUState_ReadyWait:
+                        ChangeState_ReadyWait(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_Ready:
+                        break;
+                    }
+                }
+#endif
+#if 0
+                    if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_Selected)
+                    {
+                        //  選択したユニットデータを取得
+//                        PlayerState->SendServerMessage(ARRANGEMENT_SYNC_SELECTED);
+                        ChangeState_PositionSet(PlayerState,true);
+                    }
+                    else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_ReadyWait)
+                    {
+                        //  一つ上を閉じる
+//                        PlayerState->SendServerMessage(ARRANGEMENT_SYNC_READY_WAIT);
+                        ChangeState_ReadyWait(PlayerState,true);
+                    }
+                    else if (RoleArrangementUnitStage->StartPositionState == EAUState::EAUState_SelectPositionCansel)
+                    {
+                        //  キャンセル
+//                        PlayerState->SendServerMessage(ARRANGEMENT_SYNC_CANSEL);
+                        ChangeState_SelectPositionCansel(PlayerState,true);
+                    }
+#endif
+                break;
+            case ERpoleSelectSlotState::ERRSS_CheckReady:
+                break;
+            case ERpoleSelectSlotState::ERRSS_Ready:
+                GetReady();
+                break;
+            }
+            break;
+        case ERoleSelectDataType::ERSDT_SlotSelectIndex:
+            break;
+        case ERoleSelectDataType::ERSDT_GetReady:
+            break;
+
+
+        case ERoleSelectDataType::ERSDT_RoleSelectState:
+            switch (DataState.RoleSelectState)
+            {
+            case ERoleSelectState::ERS_None:
+                break;
+            case ERoleSelectState::ERS_RoleSelect:
+                break;
+            case ERoleSelectState::ERS_Arrangement:
+                if (RoleArrangementUnitStage)
+                {
+                    switch (DataState.ArrangementUnitState)
+                    {
+                    case EAUState::EAUState_Begin:
+                        ArrangementSetup();
+                        RoleArrangementUnitStage->JobID = SelectedJob;
+                        RoleArrangementUnitStage->BeginArrangementUnitStage();
+                        break;
+                    case EAUState::EAUState_SelectPosition:
+                        RoleArrangementUnitStage->CalcUnitPosition();
+                        break;
+                    case EAUState::EAUState_Selected:   //  配置した
+                        ChangeState_PositionSet(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_ReadyWait:   //  配置完了して最終確認待ち
+                        ChangeState_ReadyWait(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_SelectPositionCansel:   //  配置キャンセルしてロール選択に戻る
+                        ChangeState_SelectPositionCansel(PlayerState, true);
+                        break;
+                    case EAUState::EAUState_StartPosX:
+                        RoleArrangementUnitStage->UnitPosition.X = PlayerState->GetReplicated_ArrangementStartPosX();
+                        RoleArrangementUnitStage->CalcUnitPosition();
+                        break;
+                    case EAUState::EAUState_StartPosY:
+                        RoleArrangementUnitStage->UnitPosition.Y = PlayerState->GetReplicated_ArrangementStartPosY();
+                        RoleArrangementUnitStage->CalcUnitPosition();
+                        break;
+                    }
+                }
+                break;
+            }
+            break;
+        case ERoleSelectDataType::ERSDT_RoleSelectIndex:
+            RoleSelectIndex = DataState.RoleSelectIndex;
+            break;
+        case ERoleSelectDataType::ERSDT_RoleSelectJob:
+            SelectedJob = DataState.RoleSelectJob;
+            break;
+        case ERoleSelectDataType::ERSDT_RoleSelectJobBefore:
+            SelecteBeforedJob = DataState.RoleSelectJobBefore;
+            break;
+        case ERoleSelectDataType::ERSDT_RoleSelectTime:
+            RoleSelecter->NowTime = DataState.RoleSelectTime;
+            break;
+        case ERoleSelectDataType::ERSDT_RoleSelectTimeMax:
+            RoleSelecter->MaxTime = DataState.RoleSelectTimeMax;
+            break;
+#if 0
+        case ERoleSelectDataType::ERSDT_ArrangementState:
+            if (RoleArrangementUnitStage)
+            {
+                RoleArrangementUnitStage->StartPositionState = PlayerState->GetReplicated_ArrangementUnitState();
+
+                switch (RoleArrangementUnitStage->StartPositionState)
+                {
+                case EAUState::EAUState_SelectPosition:
+                    RoleArrangementUnitStage->CalcUnitPosition();
+                    break;
+                case EAUState::EAUState_Selected:   //  配置した
+                    ChangeState_PositionSet(PlayerState, true);
+                    break;
+                case EAUState::EAUState_ReadyWait:   //  配置完了して最終確認待ち
+                    return;
+                case EAUState::EAUState_SelectPositionCansel:   //  配置キャンセルしてロール選択に戻る
+#if 1
+                    ChangeState_SelectPositionCansel(PlayerState, true);
+#endif
+                    break;
+                }
+            }
+            break;
+        case ERoleSelectDataType::ERSDT_ArrangementStartX:
+            if (RoleArrangementUnitStage)
+            {
+                RoleArrangementUnitStage->UnitPosition.X = PlayerState->GetReplicated_ArrangementStartPosX();
+                RoleArrangementUnitStage->CalcUnitPosition();
+            }
+            break;
+        case ERoleSelectDataType::ERSDT_ArrangementStartY:
+            if (RoleArrangementUnitStage)
+            {
+                RoleArrangementUnitStage->UnitPosition.Y = PlayerState->GetReplicated_ArrangementStartPosY();
+                RoleArrangementUnitStage->CalcUnitPosition();
+            }
+            break;
+#endif
+        case ERoleSelectDataType::ERSDT_CallID:
+            //  コールID
+            switch (DataState.CallID)
+            {
+            case ERoleSelectCallID::ERSCID_ChangeState_Selecting:
+                ChangeState_Selecting(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_SelectingNext:
+                ChangeState_SelectingNext(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_BeforeSlot:
+                ChangeState_BeforeSlot(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_RoleSelectingToNone:
+                ChangeState_RoleSelectingToNone(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_ToArrangement:
+                ChangeState_ToArrangement(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_ReadyCansel:
+                ChangeState_ReadyCansel(PlayerState, true);
+                break;
+            case ERoleSelectCallID::ERSCID_ChangeState_SelectPositionCansel:
+                ChangeState_SelectPositionCansel(PlayerState,true);
+                break;
+
+            }
+            break;
+        }
+
+        //  ここに着たら次のコマンドを実行する
+        if (PlayerState->RoleSelectStateDataFIFO.IsEmpty() == false)
+        {
+            PlayerState->RoleSelectStateDataFIFO.Pop();
+        }
+        if (PlayerState->RoleSelectStateDataFIFO.IsEmpty())
+        {
+            //  コマンドがなくなったのでそのまま終了
+            break;
+        }
+        
+
+    }
+
+}
+
+void URoleSelectPage::TickSlotNPCProc(ARoleSelectPlayerState* PlayerState, float DT)
+{
+
+}
+
 
 
 void URoleSelectPage::CreateRoleSelectGph()
@@ -462,15 +1063,18 @@ void URoleSelectPage::CreateRoleSelectGph()
         else
         {
 
-            UCameraComponent* CameraComp = Cast<UCameraComponent>(RoleSelectScreen->FindComponentByClass(UCameraComponent::StaticClass()));
-            if (CameraComp)
+            if (RoleSelectScreen->RoleSelectCamera == nullptr)
             {
-                RoleSelectScreen->RoleSelectCamera = CameraComp;
-                RoleSelectScreen->RoleSelectCamera->SetRelativeRotation(FRotator(0.0f, 90.0f , 0.0f));
-            }
-            else
-            {
-                UE_LOG(LogTemp, Warning, TEXT("RoleSelectScreen Not Find CameraComponent?!"));
+                UCameraComponent* CameraComp = Cast<UCameraComponent>(RoleSelectScreen->FindComponentByClass(UCameraComponent::StaticClass()));
+                if (CameraComp)
+                {
+                    RoleSelectScreen->RoleSelectCamera = CameraComp;
+                    RoleSelectScreen->RoleSelectCamera->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+                }
+                else
+                {
+                    UE_LOG(LogTemp, Warning, TEXT("RoleSelectScreen Not Find CameraComponent?!"));
+                }
             }
         }
     }
@@ -544,9 +1148,13 @@ int URoleSelectPage::GetRoleSelectCursorIndex(EUnitJob job) const
 }
 
 
-void URoleSelectPage::SetRoleSelectCursorPosition(EUnitJob job)
+void URoleSelectPage::SetRoleSelectCursorPosition(EUnitJob job, ARoleSelectPlayerState* PlayerState)
 {
     RoleSelectIndex = GetRoleSelectCursorIndex(job);
+    if (PlayerState)
+    {
+        PlayerState->SetReplicated_RoleSelectIndex(RoleSelectIndex);
+    }
     ClearRoleSelectArrow();
     SetRoleSelectArrow();
 }

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Battle/Interface/MasoInterface.h" 
 #include "NiagaraComponent.h"
+#include "Battle/UnitBattleParameter.h"
 #include "MasoPanelData.generated.h"
 /**
  * 魔素パネルのデータ格納用
@@ -22,4 +23,7 @@ struct COLOSSEUM_API FMasoPanelData
 
     UPROPERTY(Transient)
     TObjectPtr<UNiagaraComponent> MasoEffect;
+
+	UPROPERTY(Transient)
+    TObjectPtr<AUnitBattleParameter> ActionUnit;
 };

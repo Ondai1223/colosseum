@@ -1,18 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Battle/BattleActionAttack.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Battle/BattleGameMode.h"
 
 #define BP_BATTLE_ATTACK_CAMERA_PATH TEXT("/Game/Battle/Blueprints/BP_BattleAttackCamera.BP_BattleAttackCamera_C")  /// BP_Unit
 #define BATTLE_ATTACK_CAMERA_MOVE_TIME 0.01f
 #define BATTLE_ATTACK_CAMERA_ATTACK_MOVE_TIME 1.5f
+#define BATTLE_ATTACK_EFFECT TEXT("/Game/FixEffect/BattleEffect/Ef_Btl_Attack_01.Ef_Btl_Attack_01")
 
 #define DEFFENCE_PARAMETER  15 //防御力のパラメータ
 //  選択パネルの設定
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionAttack::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionAttack::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     //  攻撃範囲の設定
     GameMode->BattleSelector->SetPanel(CenterGameX + 1, CenterGameY,true);
@@ -34,7 +37,7 @@ void UBattleActionAttack::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& Act
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
 {
     ;   //  攻撃では使用しない
     return BATTLE_ACTION_SKILL_SELECT_CANSEL;
@@ -46,7 +49,7 @@ int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& Actio
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionAttack::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionAttack::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     //  ダメージ計算
     //  共通のアクションユニットの設定
@@ -110,7 +113,7 @@ void UBattleActionAttack::ReflectAction(FActionResultData& ActionResult, ABattle
 //  アクション開始
 void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
 {
-
+   
 
     BattleHelper    helper;
     if (AttackCamera == nullptr)
@@ -163,6 +166,28 @@ void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGa
                 ECurveType::Sign
             );
 
+            float waittime = 0.0f;
+            switch (ActionResult.ActionUnit->GetJobID())
+            {
+            case EUnitJob::EUJ_Tank:
+                // 戦士の特技処理
+                waittime = 0.8f;
+                break;
+            case EUnitJob::EUJ_Rounder:
+                // ラウンダーの特技処理
+                waittime = 1.1f;
+                break;
+            case EUnitJob::EUJ_Healer:
+                // ヒーラーの特技処理
+                waittime = 1.15f;
+                break;
+            case EUnitJob::EUJ_Magician:
+                // マジシャンの特技処理
+                waittime = 1.1f;
+                break;
+            default:
+                break;
+            }
 
             //  行動をスタックに積む
             PushState(EAttackState::None);  //　終了ステートを設定
@@ -170,13 +195,15 @@ void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGa
             PushState(EAttackState::Wait, 1.0f);    //  少し待ってからカメラ移動開始
             PushState(EAttackState::End);    //  終了処理
             PushState(EAttackState::AnimeWaitEnd);    //  攻撃アニメーション再生
-            PushState(EAttackState::Attack);    //  攻撃
+            PushState(EAttackState::Attack, waittime);    //  攻撃
+            PushState(EAttackState::Wait);
             PushState(EAttackState::PlayAnimAttack);    //  攻撃アニメーション再生
             PushState(EAttackState::PlayAnimWait);    //  待機アニメーション再生
             PushState(EAttackState::MoveToTarget);  //  ターゲット位置まで移動
             PushState(EAttackState::PlayAnimMove);  //  移動アニメーション再生
             PushState(EAttackState::MoveStartCamera);   //  カメラ移動開始
             PushState(EAttackState::Wait, 1.5f);    //  少し待ってからカメラ移動開始
+
 
             //  まず、カメラワークが終わるのを待つ
             AttackState = EAttackState::CameraFinishWait;
@@ -253,7 +280,13 @@ bool UBattleActionAttack::TickAction(FActionResultData& ActionResult, float Delt
                 }
                 else
                 {
+                    FRotator rotation = FRotator::ZeroRotator;
                     Ite->TargetUnit->PlayAnimationDamage();
+                    if (Ite->TargetUnit->GetTeamID() == EUnitTeamID::EUTID_Team2)
+                    {
+						rotation.Yaw = 180.0f;
+                    }
+					SpawnNiagaraEffect(Ite->TargetUnit->Get3DLocation(), rotation);
                 }
             }
 
@@ -348,4 +381,11 @@ void UBattleActionAttack::PopNextState()
     }
 }
 
-
+void UBattleActionAttack::SpawnNiagaraEffect(const FVector& Location, const FRotator& Rotator)
+{
+    AttackNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, BATTLE_ATTACK_EFFECT);
+    if (AttackNiagaraSystem)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackNiagaraSystem, Location, Rotator);
+	}
+}

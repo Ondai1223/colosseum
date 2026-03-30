@@ -4,10 +4,15 @@
 #include "Battle/BattleInGameWidget.h"
 #include "Battle/BattleGameMode.h"
 #include "Battle/BattleCommandWidget.h"
+#include "Battle/BattleSkillWindow.h"
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Battle/UnitBattleParameter.h"
 
+
+/**
+ *  ここから、ブループリントの変数に置き換える
+ */
 
 #define PLAYER1TURN_NAME    TEXT("プレーヤー１のターン")
 #define PLAYER2TURN_NAME    TEXT("プレーヤー２のターン")
@@ -15,6 +20,7 @@
 
 
 #define COMMAND_WPB_NAME    TEXT("WBP_Commands")
+#define SKILL_WINDOW_NAME      TEXT("WBP_SkillWindow")
 #define PLAYER_TRUN_INFO_NAME   TEXT("WBP_PlayerTurnInform")
 
 
@@ -34,6 +40,10 @@
 
 #define PLAYER1_TEAM_NAME   TEXT("WBP_PlayerName_P1")
 #define PLAYER2_TEAM_NAME   TEXT("WBP_PlayerName_P2")
+
+ /**
+  *  ここまで
+  */
 
 
 void UBattleInGameWidget::NativeConstruct()
@@ -59,6 +69,16 @@ void UBattleInGameWidget::NativeConstruct()
     else
     {
         BattleCommand->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    SkillWindow = Cast<UBattleSkillWindow>(GetWidgetFromName(SKILL_WINDOW_NAME));
+    if (!SkillWindow)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("SkillWindow is nullptr"));
+    }
+    else
+    {
+        SkillWindow->SetVisibility(ESlateVisibility::Hidden);
     }
 
 }
@@ -190,6 +210,22 @@ void UBattleInGameWidget::ReflectPlayersStatus(ABattleGameMode* GameMode)
     TObjectPtr<UVerticalBox> Player2Parameters = Cast<UVerticalBox>(GetWidgetFromName(PLAYER2_TEAM_PARAMETER_NAME));
     ReflectPlayersStatus(Player1Parameters,GameMode,GameMode->Player1UnitsActors);
     ReflectPlayersStatus(Player2Parameters,GameMode, GameMode->Player2UnitsActors);
+}
+
+void UBattleInGameWidget::OpenSkillWindow()
+{
+    if (SkillWindow)
+    {
+        SkillWindow->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UBattleInGameWidget::CloseSkillWindow()
+{
+    if (SkillWindow)
+    {
+        SkillWindow->SetVisibility(ESlateVisibility::Hidden);
+    }
 }
 
 TObjectPtr<UBattleCharaStatusWidget> UBattleInGameWidget::GetPlayersStatus(EUnitTeamID Team, int Index)

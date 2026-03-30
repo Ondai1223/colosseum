@@ -5,8 +5,10 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Battle/BattleCommon.h"
+#include "RoleSelect/RoleSelectGameState.h"
 #include "RoleSelect/RoleSelectHelper.h"
 #include "Battle/BattleHelper.h"
+#include "RoleSelect/RoleSelectPlayerState.h"
 
 
 #define UNIT_ARRANGEMENT_NUM    3
@@ -18,7 +20,13 @@ ARoleArrangementUnitStage::ARoleArrangementUnitStage()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+#if 0
+    USceneComponent* scene = CreateDefaultSubobject<USceneComponent>(TEXT("ArrangementUnitStage"));
+    if (scene)
+    {
+        RootComponent = scene;
+    }
+#endif
 }
 
 // Called when the game starts or when spawned
@@ -34,6 +42,8 @@ void ARoleArrangementUnitStage::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+
 
 //  カーソルモデルの生成
 void ARoleArrangementUnitStage::CreateCursorModel()
@@ -77,7 +87,8 @@ void ARoleArrangementUnitStage::CreateCursorModel()
                     true
                 );
 
-                CursorModel->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+                //CursorModel->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepWorldTransform);
+                CursorModel->SetRelativeLocation(CalcUnitLocation(UnitPosition.X, UnitPosition.Y));
 
             }
         }
@@ -103,12 +114,14 @@ void ARoleArrangementUnitStage::CreateUnitModel(EUnitJob job, TArray<TObjectPtr<
 
     for (int i = 0; i < Num; ++i)
     {
-        TObjectPtr<AUnit>   unit = NewObject<AUnit>(this);
+        TObjectPtr<AUnit>   unit = GetWorld()->SpawnActor<AUnit>(AUnit::StaticClass());
         unit->SetUnitData(dmyUnit);
         unit->CreateUnitData();
         unit->SetVisible(false);
+        unit->SetActorRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
         UnitArray.Add(unit);
-        unit->GetRootComponent()->AttachToComponent(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);
+        unit->GetRootComponent()->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
 //        unit->GetRootComponent()->SetupAttachment(RootComponent);
     }
 }
@@ -287,13 +300,25 @@ TObjectPtr<AUnit> ARoleArrangementUnitStage::SearchUnitFromPosition(int X, int Y
 }
 
 //  任意のスタート位置にいるユニットを返す
-TObjectPtr<AUnit> ARoleArrangementUnitStage::SearchUnitFromPosition(int X, int Y, TArray<TObjectPtr<AUnit>>& Units)
+TObjectPtr<AUnit> ARoleArrangementUnitStage::SearchUnitFromPosition(int X, int Y, TArray<TObjectPtr<AUnit>>& Units , bool visible)
 {
     for (TArray<TObjectPtr<AUnit>>::TIterator It(Units); It; ++It)
     {
         TObjectPtr<AUnit>   Target = *It;
         FUnitData UnitData = Target->GetUnitData();
-        if (Target->IsVisible() && UnitData.StartPosX == X && UnitData.StartPosY == Y)
+        bool Visible = Target->IsVisible();
+        bool flag = false;
+
+        if (visible == false)
+        {
+            flag = !Visible;
+        }
+        else
+        {
+            flag = Visible == true && UnitData.StartPosX == X && UnitData.StartPosY == Y;
+        }
+
+        if (flag)
         {
             return Target;
         }
@@ -308,7 +333,11 @@ FVector ARoleArrangementUnitStage::CalcUnitLocation(int X, int Y) const
     location.X = BATTLE_FILED_BLOCK_SIZE * X - (BATTLE_FILED_BLOCK_SIZE) ;
     location.Y = -BATTLE_FILED_BLOCK_SIZE * Y + (BATTLE_FILED_BLOCK_SIZE * 0.5f);
     location.Z = 0.0f;
+#if 1
     return location;
+#else
+    return FVector::ZeroVector;
+#endif
 }
 
 //  最後に配置したユニットのジョブを取得
@@ -322,10 +351,67 @@ EUnitJob ARoleArrangementUnitStage::GetLastArrangementUnitJob() const
 }
 
 
-//  ユニット配置
-void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleController* Controller)
+void ARoleArrangementUnitStage::VisibleArrangementUnit()
 {
-    
+    for (TArray<FUnitData>::TIterator It(ResultUnitDatas); It; ++It)
+    {
+        FUnitData& UnitData = *It;
+
+
+        TArray<TObjectPtr<AUnit>>* Units = nullptr;
+
+        switch (UnitData.Job)
+        {
+        case EUnitJob::EUJ_Tank:
+            Units = &TankUnits;
+            break;
+        case EUnitJob::EUJ_Rounder:
+            Units = &RaunderUnits;
+            break;
+        case EUnitJob::EUJ_Magician:
+            Units = &MagicianUnits;
+            break;
+        case EUnitJob::EUJ_Healer:
+            Units = &HealerUnits;
+            break;
+        default:
+            continue;
+        }
+        TObjectPtr<AUnit> Unit = SearchUnitFromPosition(UnitData.StartPosX, UnitData.StartPosY, *Units,false);
+        if (Unit)
+        {
+            Unit->SetUnitData(UnitData);
+            Unit->SetVisible(true);
+            FVector   location = CalcUnitLocation(UnitData.StartPosX, UnitData.StartPosY);
+            Unit->Set3DLocation(location);
+        }
+    }
+}
+
+
+void ARoleArrangementUnitStage::ClearArrangementUnit(TArray<TObjectPtr<AUnit>>& Units)
+{
+    for ( TArray<TObjectPtr<AUnit>>::TIterator It(Units); It; ++It)
+    {
+        TObjectPtr<AUnit>   Unit = *It;
+        Unit->SetVisible(false);
+    }
+}
+
+void ARoleArrangementUnitStage::ClearArrangementUnit()
+{
+    ClearArrangementUnit(TankUnits);
+    ClearArrangementUnit(RaunderUnits);
+    ClearArrangementUnit(MagicianUnits);
+    ClearArrangementUnit(HealerUnits);
+}
+
+
+
+//  ユニット配置
+void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleController* Controller, ARoleSelectPlayerState* PlayerState)
+{
+   
     switch (StartPositionState)
     {
     case EAUState::EAUState_None:
@@ -336,6 +422,10 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
         //  配置開始
     {
         FUnitData   UnitData;
+
+        ClearArrangementUnit();
+        VisibleArrangementUnit();
+
         if (ResultUnitDatas.Num() > SlotNo)
         {   //  既に配置済み
             UnitData = ResultUnitDatas.Pop();
@@ -361,33 +451,7 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
                 UE_LOG(LogTemp, Warning, TEXT("配置の空きがない"));
                 break;
             }
-            TArray<TObjectPtr<AUnit>>* pUnits;
-
-            switch (JobID)
-            {
-            case EUnitJob::EUJ_Tank:
-            default:
-                pUnits = &TankUnits;
-                break;
-            case EUnitJob::EUJ_Rounder:
-                pUnits = &RaunderUnits;
-                break;
-            case EUnitJob::EUJ_Magician:
-                pUnits = &MagicianUnits;
-                break;
-            case EUnitJob::EUJ_Healer:
-                pUnits = &HealerUnits;
-                break;
-            }
-
-            for (TArray<TObjectPtr<AUnit>>::TIterator It(*pUnits); It; ++It)
-            {
-                if (!(*It)->IsVisible())
-                {
-                    SelectUnit = **It;
-                    break;
-                }
-            }
+            SelectUnit = GetSelectUnit(JobID);
         }
         //  初期配置位置設定
         UnitData = SelectUnit->GetUnitData();
@@ -404,6 +468,10 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
         CursorModel->SetRelativeLocation(location);
         CursorModel->SetVisibility(true);
         NowTime = 1.0f;
+
+        PlayerState->SetReplicated_ArrangementStartPosX(UnitPosition.X);
+        PlayerState->SetReplicated_ArrangementStartPosY(UnitPosition.Y);
+        PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_SelectPosition);
     }
 
         break;
@@ -419,9 +487,9 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
             if ((AbsX + AbsY) > 0.0f)
             {
                 //  反応あり
+                SelectUnit->SetVisible(false);
                 if (AbsX > AbsY)
                 {
-                    SelectUnit->SetVisible(false);
                     //  左右
                     if (axis.X > 0.0f)
                     {   //  手前
@@ -506,21 +574,30 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
                 SelectUnit->Set3DLocation(location);
                 CursorModel->SetRelativeLocation(location);
                 NowTime = 0.0f;
+
+                PlayerState->SetReplicated_ArrangementStartPosX(UnitPosition.X);
+                PlayerState->SetReplicated_ArrangementStartPosY(UnitPosition.Y);
+                PlayerState->SetReplicated_ArrangementUnitState(EAUState::EAUState_SelectPosition);
+
             }
             else
             {
                 if (Controller->IsOkTrigger())
                 {
                     //  任意の座標に配置
+#if 0
                     FUnitData   UnitData;
                     UnitData = SelectUnit->GetUnitData();
                     ResultUnitDatas.Add(UnitData);
-                    if (ResultUnitDatas.Num() >= UNIT_ARRANGEMENT_NUM)
+#endif
+                    if ((ResultUnitDatas.Num() + 1) >= UNIT_ARRANGEMENT_NUM)
                     {
+                        PlayerState->SendServerMessage(ARRANGEMENT_SYNC_READY_WAIT);
                         StartPositionState = EAUState::EAUState_ReadyWait;
                     }
                     else
                     {
+                        PlayerState->SendServerMessage(ARRANGEMENT_SYNC_SELECTED);
                         StartPositionState = EAUState::EAUState_Selected;
                     }
                 }
@@ -528,7 +605,6 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
                 {
                     if (SelectUnit)
                     {
-                        SelectUnit->SetVisible(false);
                         StartPositionState = EAUState::EAUState_SelectPositionCansel;
                     }
                 }
@@ -543,8 +619,66 @@ void ARoleArrangementUnitStage::TickArrangementUnit(float DeltaTime, ABattleCont
     case EAUState::EAUState_Ready:      //  準備完了
         break;
     case EAUState::EAUState_SelectPositionCansel:
-        //  配置キャンセル
-        break;
+        if (PlayerState->GetServerMessage() == ARRANGEMENT_SYNC_CANSEL)
+        {
+            SelectUnit->SetVisible(false);
+            break;
+        }
+        return;
     }
+}
+
+
+void ARoleArrangementUnitStage::CalcUnitPosition()
+{
+    FVector location = CalcUnitLocation(UnitPosition.X, UnitPosition.Y);
+
+    if (SelectUnit)
+    {
+        SelectUnit->Set3DLocation(location);
+    }
+    if (CursorModel)
+    {
+        CursorModel->SetRelativeLocation(location);
+    }
+}
+
+TObjectPtr<AUnit> ARoleArrangementUnitStage::GetSelectUnit(EUnitJob Job) const
+{
+    const TArray<TObjectPtr<AUnit>>* pUnits;
+    switch(Job)
+    {
+    case EUnitJob::EUJ_Tank:
+        pUnits = &TankUnits;
+        break;
+    case EUnitJob::EUJ_Rounder:
+        pUnits = &RaunderUnits;
+        break;
+    case EUnitJob::EUJ_Magician:
+        pUnits = &MagicianUnits;
+        break;
+    case EUnitJob::EUJ_Healer:
+        pUnits = &HealerUnits;
+        break;
+    default:
+        return nullptr;
+    }
+
+    for (TArray<TObjectPtr<AUnit>>::TConstIterator It(*pUnits); It; ++It)
+    {
+        if ((*It)->IsVisible() == false)
+        {
+            return *It;
+        }
+    }
+
+
+    return nullptr;
+}
+
+void ARoleArrangementUnitStage::BeginArrangementUnitStage()
+{
+    SelectUnit = GetSelectUnit(JobID);
+    SelectUnit->SetVisible(true);
 }
 

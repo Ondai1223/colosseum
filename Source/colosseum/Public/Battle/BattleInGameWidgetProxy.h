@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Battle/BattleInGameWidget.h"
+#include "Battle/BattleSkillWindow.h"
+#include "Unit/UnitJob.h"
+#include "Battle/SkillData.h"
 #include "BattleInGameWidgetProxy.generated.h"
 
 /**
@@ -58,6 +61,24 @@ public:
     //  バトルコマンドを開く
     void OpenBattleCommand(ABattleGameMode* GameMode, AUnitBattleParameter* BattleUnit);
 
+    //  特技ウインドウを開く
+    void OpenSkillWindow();
+
+    //  特技ウインドウを閉じる
+    void CloseSkillWindow();
+
+    //  前の特技を選択
+    void PrevSkill();
+
+    //  次の特技を選択
+    void NextSkill();
+
+    //  現在選択されている特技データを取得
+    FSkillDataType GetSelectedSkillData() const;
+
+    //  選択状態をリセット
+    void ResetSelection(EUnitJob Job);
+
     //  実行
     void RunBattleCommand(float DeltaSeconds);
     //  リリースバトルコマンド
@@ -71,6 +92,7 @@ public:
 
     //  プレーヤーのステータスをすべて反映
     void ReflectPlayersStatus(ABattleGameMode* GameMode);
+
 
 
 public:

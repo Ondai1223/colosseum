@@ -11,7 +11,7 @@
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionMove::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionMove::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     //  移動力を取得
     uint8   Moveliy = ActionUnit->GetMobility();
@@ -59,7 +59,7 @@ void UBattleActionMove::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& Actio
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
 {
     return BATTLE_ACTION_SKILL_SELECT_CANSEL;   //  移動では使わない
 }
@@ -69,7 +69,7 @@ int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionU
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionMove::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionMove::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     ActionResult->ActionUnit = ActionUnit;
     uint8   Moveliy = ActionUnit->GetMobility();

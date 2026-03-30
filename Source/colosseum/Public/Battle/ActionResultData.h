@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Battle/SkillData.h"
 #include "CoreMinimal.h"
 class AUnitBattleParameter;
 
@@ -48,6 +49,8 @@ struct COLOSSEUM_API FActionSkillkResultData
 {
     TArray<FActionTargetAndLocation> TargetUnits;
     uint32  SkillID;            //  スキルID
+    float   MpCost = 0.0f;      //  MP消費量
+	FSkillDataType SkillData;          //  スキルデータ
 };
 
 

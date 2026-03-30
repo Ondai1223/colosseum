@@ -9,7 +9,7 @@
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionDiffence::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionDiffence::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     GameMode->BattleSelector->SetPanel(CenterGameX, CenterGameY, true);
 }
@@ -27,7 +27,7 @@ void UBattleActionDiffence::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& A
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionDiffence::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+int UBattleActionDiffence::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
 {
     //  防御では使用しない
     return BATTLE_ACTION_SKILL_SELECT_CANSEL;
@@ -38,7 +38,7 @@ int UBattleActionDiffence::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& Act
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionDiffence::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID)
+void UBattleActionDiffence::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
 {
     ActionResult->ActionUnit = ActionUnit;
     //  防御の場合は、パラメータなし

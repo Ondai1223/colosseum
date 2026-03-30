@@ -13,6 +13,7 @@
 class ABattleGameMode;
 class AUnitBattleParameter;
 class UBattleCommandWidget;
+class UBattleSkillWindow;
 
 
 UENUM(BlueprintType)
@@ -122,6 +123,15 @@ public:
     void ReflectPlayersStatus(ABattleGameMode* GameMode);
 
 
+    //  スキルウインドウを開く
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void OpenSkillWindow();
+
+    //  スキルウインドウを閉じる
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void CloseSkillWindow();
+
+
 
 public:
 
@@ -161,6 +171,10 @@ public:
     //　ターンディスプレイ
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
     TObjectPtr<UUserWidget>    TurnDisplay;
+
+    //  特技ウインドウ
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    TObjectPtr<UBattleSkillWindow>    SkillWindow;
 
     //  プレーヤー１のネームウイジェット
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)

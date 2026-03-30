@@ -7,26 +7,16 @@
 #include "RoleSelect/RoleSelectDefines.h"
 #include "RoleSelect/RoleUnitSlot.h"
 #include "Battle/BattleController.h"
+#include "RoleSelect/RoleSelectENums.h"
+
 #include "RoleSelectPage.generated.h"
 
-
-
+class ARoleSelecter;
 class ARoleSelectScreen;
-
-UENUM(BlueprintType)
-enum class ERpoleSelectSlotState : uint8
-{
-    ERSSS_None          UMETA(DisplayName = "状態なし"),    // 状態なし
-    ERSSS_Selecting     UMETA(DisplayName = "職業選択中"),    // 選択中
-    ERSSS_Arrangement   UMETA(DisplayName = "ユニット配置中"),    // 未選択
-    ERRSS_ArrangementCansel UMETA(DisplayName = "ユニット配置キャンセル"),
-    ERRSS_CheckReady    UMETA(DisplayName = "ロール確定判定中"),    //  ロール確定判定中
-    ERRSS_Ready    UMETA(DisplayName = "準備完了"),    //  準備完了
-};
-
-
 class ARoleSelecter;
 class ARoleArrangementUnitStage;
+class ARoleSelectPlayerState;
+class AUnit;
 /**
  * ロールセレクトページ
  */
@@ -80,6 +70,12 @@ public:
     void NextSlot();
     virtual void NextSlot_Implementation();
 
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_RoleSelect)
+    void SetSlotIndex(int SlotIndex);
+    virtual void SetSlotIndex_Implementation(int SlotIndex);
+
+
+
     //  一つ前のスロットへ
     UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_RoleSelect)
     void PrevSlot();
@@ -127,7 +123,14 @@ public:
     void SetSlotCursor( int SlotNo );
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
-    void TickSlotProc(ABattleController* BattleController, float DT);
+    void TickSlotProc(ARoleSelectPlayerState* PlayerState, ABattleController* BC, float DT);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void TickSlotNetWorkProc(ARoleSelectPlayerState* PlayerState, float DT);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void TickSlotNPCProc(ARoleSelectPlayerState* PlayerState, float DT);
+
 
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
@@ -150,7 +153,7 @@ public:
     int GetRoleSelectCursorIndex(EUnitJob job) const;
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
-    void SetRoleSelectCursorPosition(EUnitJob job);
+    void SetRoleSelectCursorPosition(EUnitJob job,ARoleSelectPlayerState* PlayerState = nullptr);
 
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
@@ -169,6 +172,46 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
     void CalcRoleLoop();
+
+    //  以下ステートの変更
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_Selecting(ARoleSelectPlayerState* PlayerState,bool NotSendCommand = false);
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_SelectingNext(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    bool ChangeState_BeforeSlot(ARoleSelectPlayerState* PlayerState,bool NotSendCommand = false);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_RoleSelectingToNone(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_ToArrangement(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_PositionSet(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_ReadyWait(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_SelectPositionCansel(ARoleSelectPlayerState* PlayerState, bool NotSendCommand = false);
+
+#if 0
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_ArrangementCansel(ARoleSelectPlayerState* PlayerState, bool Client = false);
+#endif
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_RoleSelect)
+    void ChangeState_ReadyCansel(ARoleSelectPlayerState* PlayerState, bool Client = false);
+
+
+
+
+
 public:
     //  ロールユニットスロットの取得
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
@@ -178,6 +221,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_RoleSelect)
     EUnitTeamID TeamID = EUnitTeamID::EUTID_None;
 
+
+    UPROPERTY()
     ERpoleSelectSlotState   SlotState = ERpoleSelectSlotState::ERSSS_None;
 
 

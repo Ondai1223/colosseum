@@ -37,7 +37,7 @@ void ARoleSelectGameModeBase::BeginRoleSelectGameMode()
     }
 
     WorkUnitData.TeamID = EUnitTeamID::EUTID_Team1;
-    WorkUnitData.Job = EUnitJob::EUJ_Tank;
+    WorkUnitData.SetJob(EUnitJob::EUJ_Tank);
 
     CreateWorkUnit(WorkPlayer1Units,EUnitTeamID::EUTID_Team1);
     CreateWorkUnit(WorkPlayer2Units, EUnitTeamID::EUTID_Team2);
@@ -140,7 +140,7 @@ void ARoleSelectGameModeBase::CreateWorkUnit(TArray<TObjectPtr<AUnit>>& Units, E
         }
         FUnitData UnitData;
         UnitData.TeamID = TeamID;
-        UnitData.Job = JobList[i]; // 仮にタンクに設定
+        UnitData.SetJob(JobList[i]); // 仮にタンクに設定
         NewUnit->SetUnitData(UnitData);
         NewUnit->CreateUnitData();
         NewUnit->Set3DScale(ROLE_CRATE_UNIT_SCALE);

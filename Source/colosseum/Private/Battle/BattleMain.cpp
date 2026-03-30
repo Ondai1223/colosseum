@@ -81,7 +81,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 {
     // 戦闘開始前の先制後攻の表示イベントの実装
  
-    #if 1
+    #if 0
     
     // モーション動画撮影用(デバッグ)
     // 待機
@@ -175,7 +175,49 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
             Unit->PlayAnimationBuf();
         }
     }
+    #else 
+        // エフェクト発生用(デバッグ)
+    FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
+	TObjectPtr<AUnitBattleParameter> DebugUnit = GameMode->GetUnit(cur.X, cur.Y);
+    if (GameMode->BattleController->IsMotion0Trigger())
+    {
+        GameMode->MasoManager->JoinMaso(cur.X, cur.Y, TEXT("Fire"), DebugUnit, GameMode);
+    }
 
+    if (GameMode->BattleController->IsMotion1Trigger())
+    {
+        GameMode->MasoManager->JoinMaso(cur.X, cur.Y, TEXT("Water"), DebugUnit, GameMode);
+    }
+
+    if (GameMode->BattleController->IsMotion2Trigger())
+    {
+        GameMode->MasoManager->JoinMaso(cur.X, cur.Y, TEXT("Thunder"), DebugUnit, GameMode);
+    }
+
+    if (GameMode->BattleController->IsMotion3Trigger())
+    {
+
+    }
+
+    if (GameMode->BattleController->IsMotion4Trigger())
+    {
+
+    }
+
+    if (GameMode->BattleController->IsMotion5Trigger())
+    {
+
+    }
+
+    if (GameMode->BattleController->IsMotion6Trigger())
+    {
+
+    }
+
+    if (GameMode->BattleController->IsMotion7Trigger())
+    {
+
+    }
     #endif
 
     switch(BattleMainState) {
@@ -255,7 +297,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     int Y = SelectUnit->GetGameY();
                     if (BattleAttackInterface)
                     {
-                        BattleAttackInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, 0);
+                        BattleAttackInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
                     }
                 }
                 return ETickBattleState::EBS_Tick;
@@ -268,7 +310,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     //  
                     if (BattleDiffenceInterface)
                     {
-                        BattleDiffenceInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, 0);
+                        BattleDiffenceInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
                     }
                     else
                     {
@@ -291,7 +333,8 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     // TODO: 自陣、敵陣の選択はマスターデータ参照でSetSelectPanel()内で行う
                     if (BattleSkillInterface)
                     {
-                        BattleSkillInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, SkillID);
+                        BattleSkillInterface->SelectSkillBegin(SelectUnit, GameMode);
+                        BattleSkillInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
                     }
                 }
 #if 0
@@ -312,7 +355,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     GameMode->InGameWidget->ReleaseBattleCommand(DeltaSeconds);
                     if (BattleMoveInterface)
                     {
-                        BattleMoveInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, 0);
+                        BattleMoveInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
                     }
             }
                 return ETickBattleState::EBS_Tick;
@@ -427,7 +470,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         SelectUnit->SetAttackEnd();
                         SelectUnit->SetSkillEnd();
                         //  攻撃計算
-                        BattleAttackInterface->CalcAction(&ActionResult, Locations, SelectUnit,GameMode,0);
+                        BattleAttackInterface->CalcAction(&ActionResult, Locations, SelectUnit,GameMode, FSkillDataType());
 
                         //  計算結果を反映
                         BattleAttackInterface->ReflectAction(ActionResult,GameMode);
@@ -514,7 +557,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         Locations.Add(Location);
 
                         //  攻撃計算
-                        BattleMoveInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode,0);
+                        BattleMoveInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
 
                         //  計算結果を反映
                         BattleMoveInterface->ReflectAction(ActionResult, GameMode);
@@ -588,7 +631,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     Locations.Add(Location);
 
                     //  防御計算
-                    BattleDiffenceInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode,0);
+                    BattleDiffenceInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
 
                     //  防御結果反映
                     BattleDiffenceInterface->ReflectAction(ActionResult, GameMode);
@@ -632,13 +675,14 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
         case EBattleMainState::BMS_SelectSkill:
             if (BattleSkillInterface)
             {
-                int ID = BattleSkillInterface->SelectSkillTick(SelectUnit, GameMode);
-                if (ID >= 0)
+                // SkillDataを直接更新する形に
+                int Status = BattleSkillInterface->SelectSkillTick(SelectUnit, GameMode, SkillData);
+                if (Status == BATTLE_ACTION_SKILL_SELECT_DECIDE)
                 {
-                    SkillID = ID;
                     int X = SelectUnit->GetGameX();
                     int Y = SelectUnit->GetGameY();
-                    BattleSkillInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, SkillID);
+                    BattleSkillInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, SkillData);
+                    GameMode->InGameWidget->CloseSkillWindow();
                     BattleMainState = EBattleMainState::BMS_SelectSkillPanel;
                     return ETickBattleState::EBS_Tick; //
                 }
@@ -653,6 +697,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 #else
                     BeginBattleCommand(GameMode);
 #endif
+                    GameMode->InGameWidget->CloseSkillWindow();
                     //  カーソルを元の位置へ
                     CursorModel->SetVisibility(false);
                     ReturnSelectUnitCursorLocation(GameMode);
@@ -664,7 +709,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                 }
 
 
-                SkillID = 0;
+                SkillData = FSkillDataType(); // Clear logic
                 int X = SelectUnit->GetGameX();
                 int Y = SelectUnit->GetGameY();
 
@@ -685,6 +730,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 #else
                 BeginBattleCommand(GameMode);
 #endif
+                GameMode->InGameWidget->CloseSkillWindow();
 
                 //  カーソルを元の位置へ
                 CursorModel->SetVisibility(false);
@@ -738,7 +784,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         SelectUnit->SetSkillEnd();
 
                         //  攻撃計算
-                        BattleSkillInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode,SkillID);
+                        BattleSkillInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, SkillData);
 
                         //  計算結果を反映
                         BattleSkillInterface->ReflectAction(ActionResult, GameMode);
@@ -747,7 +793,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         BattleSkillInterface->BeginAction(ActionResult, GameMode);
 
                         //　魔素付与
-                        GameMode->MasoManager->JoinMaso(Location.X, Location.Y);
+                        // GameMode->MasoManager->JoinMaso(Location.X, Location.Y);
 
                     }
                     else
@@ -759,7 +805,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                         TObjectPtr<AUnitBattleParameter>    Target = GameMode->GetUnit(cursor.X, cursor.Y);
                         ActionTargetLocation.Target = Target;
 
-                        ActionResult.ActionSkillResult.SkillID = SkillID;
+                        ActionResult.ActionSkillResult.SkillID = 0; // SkillID member removal replacement (use hash or 0)
 
                         ActionResult.ActionSkillResult.TargetUnits.Add(ActionTargetLocation);
                     }
@@ -1012,15 +1058,15 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                 // どちらのチームのターンが終わったか
                 if (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1)
                 {
-                    GameMode->MasoManager->UpdatePlayer1Maso();
-                    GameMode->MasoManager->ResolvePlayer1PendingMasoActions();
                     UE_LOG(LogTemp, Warning, TEXT("Player1のターン終了"));
+                    GameMode->MasoManager->UpdatePlayer1Maso();
+                    GameMode->MasoManager->ResolvePlayer1PendingMasoActions(GameMode);
                 }
                 else 
                 {
-                    GameMode->MasoManager->UpdatePlayer2Maso();
-                    GameMode->MasoManager->ResolvePlayer2PendingMasoActions();
                     UE_LOG(LogTemp, Warning, TEXT("Player2のターン終了"));
+                    GameMode->MasoManager->UpdatePlayer2Maso();
+                    GameMode->MasoManager->ResolvePlayer2PendingMasoActions(GameMode);
                 }
                 return ETickBattleState::EBS_TurnEnd;
             }
@@ -1249,7 +1295,7 @@ void ABattleMain::AttackAction(ABattleGameMode* GameMode , int X , int Y)
         SelectUnit->SetAttackEnd();
         SelectUnit->SetSkillEnd();
         //  攻撃計算
-        BattleAttackInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, 0);
+        BattleAttackInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
 
         //  計算結果を反映
         BattleAttackInterface->ReflectAction(ActionResult, GameMode);
@@ -1275,7 +1321,7 @@ void ABattleMain::DiffenceAction(ABattleGameMode* GameMode, int X, int Y)
         Locations.Add(Location);
 
         //  防御計算
-        BattleDiffenceInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, 0);
+        BattleDiffenceInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
 
         //  防御結果反映
         BattleDiffenceInterface->ReflectAction(ActionResult, GameMode);

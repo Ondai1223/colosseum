@@ -104,7 +104,7 @@ ETickBattleState ABattleMainVsNpc::TickBattleState(ABattleGameMode* GameMode, fl
                 {
                     FActionResultData   TestActionResult;
                     //  攻撃計算
-                    BattleAttackInterface->CalcAction(&TestActionResult, Locations, SelectUnit, GameMode, 0);
+                    BattleAttackInterface->CalcAction(&TestActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
                     TArray<TObjectPtr<AUnitBattleParameter>>    Targets;
 
                     if (TestActionResult.ActionAttackResult.AttackTargets.Num() > 0) {
@@ -130,7 +130,7 @@ ETickBattleState ABattleMainVsNpc::TickBattleState(ABattleGameMode* GameMode, fl
                         AttackTargets = Targets;
                         BattleMainState = EBattleMainState::BMS_SelectAttack;
 
-                        BattleAttackInterface->SetSelectPanel(CenterX, CenterY, SelectUnit, GameMode, 0);
+                        BattleAttackInterface->SetSelectPanel(CenterX, CenterY, SelectUnit, GameMode, FSkillDataType());
 
                         return ETickBattleState::EBS_Tick;
                     }
@@ -149,7 +149,7 @@ ETickBattleState ABattleMainVsNpc::TickBattleState(ABattleGameMode* GameMode, fl
                 if (BattleMoveInterface)
                 {
                     //  移動範囲パネルを表示
-                    BattleMoveInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, 0);
+                    BattleMoveInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
 
                     FGameLocation           Location;
                     TArray<FGameLocation>    Locations;
@@ -198,7 +198,7 @@ ETickBattleState ABattleMainVsNpc::TickBattleState(ABattleGameMode* GameMode, fl
                             Locations.Empty();
                             Locations.Add(Location);
 
-                            BattleMoveInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, 0);
+                            BattleMoveInterface->CalcAction(&ActionResult, Locations, SelectUnit, GameMode, FSkillDataType());
                             BattleMoveInterface->ReflectAction(ActionResult, GameMode);
                             BattleMoveInterface->BeginAction(ActionResult, GameMode);
 
@@ -227,7 +227,7 @@ ETickBattleState ABattleMainVsNpc::TickBattleState(ABattleGameMode* GameMode, fl
                 //  移動選択
                 if (BattleDiffenceInterface)
                 {
-                    BattleDiffenceInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, 0);
+                    BattleDiffenceInterface->SetSelectPanel(X, Y, SelectUnit, GameMode, FSkillDataType());
                 }
                 else
                 {

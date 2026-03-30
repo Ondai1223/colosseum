@@ -9,6 +9,7 @@
 #include "Battle/UnitBattleParameter.h"
 #include "Battle/ActionResultData.h"
 #include "Battle/Interface/BattleActionInterface.h"
+#include "Battle/MasoManager.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
 #include "BattleMain.generated.h"
@@ -152,5 +153,5 @@ public:
 
 
     FActionResultData                          ActionResult;            //  アクションリザルト
-    uint32                                      SkillID;                //  スキルID
+    FSkillDataType                             SkillData;               //  スキルデータ
 };

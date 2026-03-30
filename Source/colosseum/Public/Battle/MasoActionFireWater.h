@@ -17,9 +17,13 @@ class COLOSSEUM_API UMasoActionFireWater : public UMasoActionBase
 public:
 	UMasoActionFireWater();
 
-	virtual void ApplyAction() override;
+	virtual void CalcAction(FActionResultData* ActionResult, const uint8 PanelX, const uint8 PanelY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode) override;
+
+	virtual void ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode) override;
 
 	virtual void ActionEffect(TObjectPtr<AMasoPanel> MasoPanel) override;
+	
+	virtual float GetActionTime() override;
 	
 	virtual EActionType GetActionType()override;
 };

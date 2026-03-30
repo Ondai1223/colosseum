@@ -21,7 +21,7 @@ public:
     //  CenterGameX     :   中心となるX座標
     //  CenterGameY     :   中心となるX座標
     //  GameMode        :   ゲームモード
-    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID) override;
+    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) override;
 
 
     //  スキル選択開始
@@ -33,14 +33,14 @@ public:
     //  -1でまだ選択が終わっていない
     //  -2でキャンセル
     //  0以上で選択したスキル
-    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode) override;
+    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData) override;
     //  アクション計算
     //  ActionResult    :   アクション結果格納先
     //  TargetLocations :   ターゲットするゲーム座標
     //  ActionUnit      :   アクションを起こすユニット
     //  GameMode        :   ゲームモード
     //  SkillID         :   スキルID(特技を選択した時のみ有効）
-    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, uint32 SkillID) override;
+    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) override;
 
     //  アクション結果を反映
     //  ActionResult    :   結果格納先

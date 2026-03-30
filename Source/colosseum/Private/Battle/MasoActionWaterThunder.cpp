@@ -3,20 +3,36 @@
 
 #include "Battle/MasoActionWaterThunder.h"
 
+#define NS_Incidence TEXT("/Game/FixEffect/miyaryu/NS/W+T/W+T_incidence.W+T_incidence")
+#define NS_Main TEXT("/Game/FixEffect/miyaryu/NS/W+T/W+T.W+T")
+
+#define IncidentEffectTime 4.3f
+#define TotalEffectTime 5.0f
+
 UMasoActionWaterThunder::UMasoActionWaterThunder()
 {
-	ActionNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/FixEffect/miyaryu/NS/W+T/W+T.W+T"));
+	IncidenceNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, NS_Incidence);
+	ActionNiagaraSystem = LoadObject<UNiagaraSystem>(nullptr, NS_Main);
+	EffectDuration = IncidentEffectTime;
 }
 
-void UMasoActionWaterThunder::ApplyAction()
+void UMasoActionWaterThunder::CalcAction(FActionResultData* ActionResult, const uint8 PanelX, const uint8 PanelY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
 {
-	UE_LOG(LogTemp, Warning, TEXT("水と雷の魔素が組み合わさりました。"));
+}
+
+void UMasoActionWaterThunder::ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+{
 }
 
 void UMasoActionWaterThunder::ActionEffect(TObjectPtr<AMasoPanel> MasoPanel)
 {
 	UE_LOG(LogTemp, Warning, TEXT("電気の海エフェクト"));
 	Super::ActionEffect(MasoPanel);
+}
+
+float UMasoActionWaterThunder::GetActionTime()
+{
+	return TotalEffectTime;
 }
 
 EActionType UMasoActionWaterThunder::GetActionType()

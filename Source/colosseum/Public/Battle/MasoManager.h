@@ -9,6 +9,7 @@
 #include "NiagaraSystem.h"
 #include "MasoManager.generated.h"
 
+class ABattleGameMode; // 前方宣言
 UCLASS()
 class COLOSSEUM_API AMasoManager : public AActor
 {
@@ -32,7 +33,7 @@ public:
 	void SearchMasoPanelFromWorld();
 
 	// 魔素登録
-	void JoinMaso(int X, int Y);
+	void JoinMaso(int X, int Y, FName Type, TObjectPtr<AUnitBattleParameter> ActionUnit, ABattleGameMode* GameMode);
 
 	// パネルの色変更
 	void ChangeMasoPanelMaterial(TObjectPtr<AMasoPanel> MasoPanel, int MasoPanelNum, bool join);
@@ -44,10 +45,10 @@ public:
 	void UpdatePlayer2Maso();
 
 	// Player1の魔素パネルの通常型の魔素チェック
-	void ResolvePlayer1PendingMasoActions();
+	void ResolvePlayer1PendingMasoActions(ABattleGameMode* GameMode);
 
 	// Player2の魔素パネルの通常型の魔素チェック
-	void ResolvePlayer2PendingMasoActions();
+	void ResolvePlayer2PendingMasoActions(ABattleGameMode* GameMode);
 
 	// MasoPanelが発動中かチェックする関数.
 	bool AbleJoin(TObjectPtr<AMasoPanel> MasoPanel);
@@ -56,13 +57,41 @@ public:
 	bool GetCombinedMasoElements(FMasoPanelData* maso1, FMasoPanelData* maso2);
 
 	// 魔素効果発動.
-	void ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel);
+	void ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleGameMode* GameMode);
+
+	// 魔素効果エフェクトの消滅
+	void DeactivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel);
+
+	// 魔素効果のエフェクト発生
+	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
+	void MasoActionEffect();
+
+	// 魔素効果の計算
+	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
+	void MasoActionCalculate();
+
+	// 魔素効果エフェクトの時間取得
+	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
+	float GetMasoActionTime();
 
 	// 魔素データの初期化.
-	void ResetMasoPanel(TObjectPtr<AMasoPanel> MasoPanel);
+	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
+	void ResetMasoPanel();
 
 	void CreateNiagaraComponent(TObjectPtr<UNiagaraSystem> MasoPanelNiagaraSystem, UStaticMeshComponent* component, int PanelSideIndex);
 
+	//  アクションリザルトの初期化
+	void ClearActionResult();
+
+	// 魔素効果エフェクトと計算処理を始めるイベントノード
+	UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Maso)
+	void OnMasoAction();
+	virtual void OnMasoAction_Implementation();
+
+
+protected:
+	UPROPERTY(Transient)
+	ABattleGameMode* MasoGameMode;
 private:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AMasoPanel>> MasoPanelArray; //魔素パネルの配列
@@ -78,4 +107,14 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> MasoPanelEffectComponent;
+	
+	UPROPERTY(Transient)
+	TObjectPtr<AMasoPanel> ActionPanel;
+
+	UPROPERTY(Transient)
+	TObjectPtr<AUnitBattleParameter> JointedUnit;
+
+	FActionResultData ActionResult;
+	
+	bool bIsMasoActionActive; // 魔素効果が発動中かどうかのフラグ
 };

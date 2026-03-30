@@ -27,13 +27,19 @@ AUnit::AUnit()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+#if 1
+    USkeletalMeshComponent* scene = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("UnitScene"));
+    if (scene)
+    {
+        RootComponent = scene;
+    }
+#else
     UnitMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("UnitMesh"));
-
     if (UnitMesh)
     {
         RootComponent = UnitMesh; // メッシュコンポーネントをルートコンポーネントに設定
     }
-
+#endif
 
 }
 
@@ -217,7 +223,7 @@ void AUnit::CreateUnitData()
             }
         }
         UnitMesh->SetSimulatePhysics(true);
-//        AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+        UnitMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
     }
     else
     {
@@ -260,7 +266,7 @@ FQuat AUnit::GetQuaternion() const
 //  クォータニオン設定
 void AUnit::SetQuaternion(const FQuat& quat)
 {
-    return UnitMesh->SetRelativeRotation(quat);
+    UnitMesh->SetRelativeRotation(quat);
 }
 
 

@@ -227,6 +227,63 @@ void UBattleInGameWidgetProxy::ReflectPlayersStatus(ABattleGameMode* GameMode)
     }
 }
 
+void UBattleInGameWidgetProxy::OpenSkillWindow()
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::OpenSkillWindow: InGameWidget is nullptr"));
+    }
+    else
+    {
+        InGameWidget->OpenSkillWindow();
+    }
+}
+
+void UBattleInGameWidgetProxy::CloseSkillWindow()
+{
+    if (!InGameWidget)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("UBattleInGameWidgetProxy::CloseSkillWindow: InGameWidget is nullptr"));
+    }
+    else
+    {
+        InGameWidget->CloseSkillWindow();
+    }
+}
+
+void UBattleInGameWidgetProxy::PrevSkill()
+{
+    if (InGameWidget && InGameWidget->SkillWindow)
+    {
+        InGameWidget->SkillWindow->PrevSkill();
+    }
+}
+
+void UBattleInGameWidgetProxy::NextSkill()
+{
+    if (InGameWidget && InGameWidget->SkillWindow)
+    {
+        InGameWidget->SkillWindow->NextSkill();
+    }
+}
+
+FSkillDataType UBattleInGameWidgetProxy::GetSelectedSkillData() const
+{
+    if (InGameWidget && InGameWidget->SkillWindow)
+    {
+        return InGameWidget->SkillWindow->GetSelectedSkillData();
+    }
+    return FSkillDataType();
+}
+
+void UBattleInGameWidgetProxy::ResetSelection(EUnitJob Job)
+{
+    if (InGameWidget && InGameWidget->SkillWindow)
+    {
+        InGameWidget->SkillWindow->ResetSelection(Job);
+    }
+}
+
 
 
 

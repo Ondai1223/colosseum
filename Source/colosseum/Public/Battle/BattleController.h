@@ -5,6 +5,9 @@
 #define CATEGORY_BattleInput "BattleInput"
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Battle/ButtonInputInfo.h"
+#include "RoleSelect/RoleSelectENums.h"
+#include "Unit/UnitJob.h"
 #include "BattleController.generated.h"
 
 /**
@@ -16,9 +19,72 @@ class COLOSSEUM_API ABattleController : public APlayerController
 	GENERATED_BODY()
 
 public:
+
+    ABattleController();
+
+public:
+
+
+    /**
+     *  以下はサーバーに入力を送るための関数
+     * Run On Serverの関数は、クライアントからサーバーに関数を呼び出すことができるようにするためのものです。
+     */
+
+    //-------------------------------------------------------------
+     //  決定入力をサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerInputOk();
+    virtual void CallRunOnServerInputOk_Implementation();
+
+    //  決定入力のトリガをサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerReleaseTriggerOk();
+    virtual void CallRunOnServerReleaseTriggerOk_Implementation();
+
+    //  決定入力のリリースをサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerReleaseOk();
+    virtual void CallRunOnServerReleaseOk_Implementation();
+
+    //-------------------------------------------------------------
+     //  キャンセル入力をサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerInputCansel();
+    virtual void CallRunOnServerInputCansel_Implementation();
+
+    //  キャンセル入力のトリガをサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerReleaseTriggerCansel();
+    virtual void CallRunOnServerReleaseTriggerCansel_Implementation();
+
+    //  キャンセル入力のリリースをサーバーに送る
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerReleaseCansel();
+    virtual void CallRunOnServerReleaseCansel_Implementation();
+
+    //-------------------------------------------------------------
+    //  左スティック
+    //  入力
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerInputLeftAxis(const FVector2D axis);
+    virtual void CallRunOnServerInputLeftAxis_Implementation(const FVector2D axis);
+
+    //  離した
+    UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_BattleInput)
+    void CallRunOnServerReleaseLeftAxis();
+    virtual void CallRunOnServerReleaseLeftAxis_Implementation();
+
+public:
+    //  ------------------- キャンセル入力関連 -------------------
     // キャンセルフラグをたてる
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     void Cansel();
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+    void TriggerCansel();
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+    void TriggerReleaseCansel();
 
     //　キャンセルフラグをオフ
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
@@ -32,9 +98,21 @@ public:
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     bool IsCanselTrigger() const;
 
+
+
+
+    //  ------------------- 決定入力関連 -------------------
     //  決定フラグをたてる
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     void Ok();
+
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+    //  トリガ入力のフラグをたてる
+    void TriggerOk();
+
+    //  トリガ入力のフラグをオフ
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
+    void ReleaseTriggerOk();
 
     //　決定フラグをオフ
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
@@ -50,6 +128,9 @@ public:
     bool IsOkTrigger() const;
 
 
+
+
+    //  ------------------- ページアップ入力関連 -------------------
     //  ページアップ入力
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     void PageUp();
@@ -65,6 +146,8 @@ public:
     //  ページアップ入力トリガ判定
     UFUNCTION(BlueprintCallable, Category = CATEGORY_BattleInput)
     bool IsPageUpTrigger() const;
+
+
 
 
     // ページダウン入力
@@ -318,20 +401,66 @@ public:
     void InputRun(float DeltaSeconds);
 
 
+public:
+    //------------------- ロール選択で使う入力(ここから) -------------------
+    // サーバーRPC(SlotState)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_SlotState(const ERpoleSelectSlotState RSSState);
+
+    // サーバーRPC(SlotSelectIndex)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_SlotSelectIndex(const int32 SlotIndex);
+
+    // サーバーRPC(GetReady)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_GetReady(const bool Ready);
+
+    // サーバーRPC(RoleSelectState)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectState(const ERoleSelectState ERSState);
+
+    // サーバーRPC(RoleSelectIndex)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectIndex(const int32 RSIndex);
+
+    // サーバーRPC(RoleSelectJob)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectJob(const EUnitJob job);
+
+    // サーバーRPC(RoleSelectJobBefore)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectJobBefore(const EUnitJob job);
+
+    // サーバーRPC(RoleSelectTime)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectTime(const float RSTime);
+
+    // サーバーRPC(RoleSelectTimeMax)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_RoleSelectTimeMax(const float RSTimeMax);
+
+    // サーバーRPC(ArrangementUnitState)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_ArrangementUnitState(const EAUState State);
+
+    // サーバーRPC(ArrangementStartPosX)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_ArrangementStartPosX(const int32 X);
+
+    // サーバーRPC(ArrangementStartPosY)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_ArrangementStartPosY(const int32 Y);
+
+    // サーバーRPC(ArrangementStartPosY)
+    UFUNCTION(Server, Reliable)
+    void ServerRPC_CallID(const ERoleSelectCallID ID);
+
+
+    //------------------- ロール選択で使う入力(ここまで) -------------------
+
 
 private:
 
-    //  ボタン入力情報
-    struct FButtonInputInfo
-    {
-        bool Coutinue = false;  //  コンテニュー入力
-        bool Trigger = false;   //  トリガ入力
-        bool Repeat = false;    //  リピート入力
-
-        bool BeforeContinue = false;    //  前回のコンテニュー入力
-
-
-    };
 
     //  アナログスティック情報
     struct FAxisInputInfo
@@ -347,11 +476,11 @@ private:
 
 
     //  入力の開始
-    void InputBegin(ABattleController::FButtonInputInfo* InputData) const;
+    void InputBegin(FButtonInputInfo* InputData) const;
     //  入力中
-    void InputRun(ABattleController::FButtonInputInfo* InputData,float DeltaSecond) const;
+    void InputRun(FButtonInputInfo* InputData,float DeltaSecond) const;
     //  入力リリース
-    void InputRelease(ABattleController::FButtonInputInfo* InputData) const;
+    void InputRelease(FButtonInputInfo* InputData) const;
 
 
     //  アナログスティック入力開始
@@ -363,7 +492,16 @@ private:
     //  アナログスティック解除
     void InputRelease(ABattleController::FAxisInputInfo* InputData) const;
 
+
+
+protected:
+    virtual void SetupInputComponent() override;
+
+ public:
+//    UPROPERTY(ReplicatedUsing = OnRep_InputOk, BlueprintReadOnly, Category = CATEGORY_BattleInput)
+
     FButtonInputInfo InputOk;        //  OK入力情報
+
     FButtonInputInfo InputCansel;    //  キャンセル入力情報
 
     FButtonInputInfo InputPageUp;     //  ページアップ入力情報
@@ -387,6 +525,14 @@ private:
 
     FAxisInputInfo  InputLeftAxis;  //  左スティック入力情報
 
+
+
+public:
+
+protected:
+
+    virtual void BeginPlay() override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 //    FVector2D LeftAxis = FVector2D::ZeroVector; // 左スティックの値を保持する変数
 

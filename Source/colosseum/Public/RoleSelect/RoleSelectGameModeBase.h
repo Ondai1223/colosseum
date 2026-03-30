@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "RoleSelect/RoleSelectDefines.h"
 #include "RoleSelect/RoleSelectCursor.h"
+#include "RoleSelect/RoleSelectStateData.h"
 #include "Unit/Unit.h"
 #include "Unit/UnitData.h"
 #include "Battle/BattleController.h"
@@ -15,14 +16,6 @@
 
 class ARoleArrangement;
 
-
-UENUM(BlueprintType)
-enum class ERoleSelectState : uint8
-{
-    ERS_None            UMETA(DisplayName = "状態なし"),    // 状態なし
-    ERS_RoleSelect      UMETA(DisplayName = "ロールセレクト中"),  // ロールセレクト中
-    ERS_Arrangement     UMETA(DisplayName = "ユニット配置中"),   // ユニット配置中
-};
 
 /**
  * ロールセレクトゲームモードベース

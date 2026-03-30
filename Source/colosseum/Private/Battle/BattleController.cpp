@@ -2,19 +2,105 @@
 
 
 #include "Battle/BattleController.h"
+#include "RoleSelect/RoleSelectPlayerState.h"
+#include "Net/UnrealNetwork.h" // レプリケーションに必要
+
 #define AXIS_DEAD_ZONE  0.2f
+
+ABattleController::ABattleController()
+{
+    bReplicates = true; // レプリケーションを有効にする
+}
+
+
+void ABattleController::CallRunOnServerInputOk_Implementation()
+{
+    ;
+}
+
+
+void ABattleController::CallRunOnServerReleaseTriggerOk_Implementation()
+{
+    ;
+}
+
+void ABattleController::CallRunOnServerReleaseOk_Implementation()
+{
+    ;
+}
+
+
+void ABattleController::CallRunOnServerInputCansel_Implementation()
+{
+    ;
+}
+
+void ABattleController::CallRunOnServerReleaseTriggerCansel_Implementation()
+{
+    ;
+}
+
+
+void ABattleController::CallRunOnServerReleaseCansel_Implementation()
+{
+    ;
+}
+
+
+void ABattleController::CallRunOnServerInputLeftAxis_Implementation(const FVector2D axis)
+{
+    ;
+}
+
+void ABattleController::CallRunOnServerReleaseLeftAxis_Implementation()
+{
+    ;
+}
+
+
+
+
 // キャンセル
 void ABattleController::Cansel()
 {
     // Example: Notify the player or game mode about the cancellation
     // This could be a call to a method in the game mode or another relevant class
     InputBegin(&InputCansel);
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerInputCansel();
+    }
+
+}
+
+
+void ABattleController::TriggerCansel()
+{
+    InputCansel.Trigger = true;
+}
+
+void ABattleController::TriggerReleaseCansel()
+{
+    InputCansel.Trigger = false;
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerReleaseTriggerCansel();
+    }
+
 }
 
 // キャンセルフラグをオフにする
 void ABattleController::ReleaseCansel()
 {
     InputRelease(&InputCansel);
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerReleaseCansel();
+    }
+
 }
 
 // キャンセルフラグが立っているかどうか
@@ -32,14 +118,49 @@ bool ABattleController::IsCanselTrigger() const
 //  決定フラグをたてる
 void ABattleController::Ok()
 {
+    InputOk.Coutinue = true;
 
-    InputBegin(&InputOk);
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerInputOk();
+    }
+
+
 }
+
+void ABattleController::TriggerOk()
+{
+    InputOk.Trigger = true;
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerInputOk();
+    }
+
+}
+
+void ABattleController::ReleaseTriggerOk()
+{
+    InputOk.Trigger = false;
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerReleaseTriggerOk();
+    }
+
+}
+
 
 //　決定フラグをオフ
 void ABattleController::ReleaseOk()
 {
-    InputRelease(&InputOk);
+    InputOk.Coutinue = false;
+    InputOk.Trigger = false;
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerReleaseOk();
+    }
 }
 
 
@@ -371,7 +492,7 @@ bool ABattleController::IsMotion7Trigger() const
 }
 
 
-void ABattleController::InputBegin(ABattleController::FButtonInputInfo* InputData) const
+void ABattleController::InputBegin(FButtonInputInfo* InputData) const
 {
     InputData->BeforeContinue = false;
     InputData->Coutinue = true;
@@ -382,11 +503,13 @@ void ABattleController::InputBegin(ABattleController::FButtonInputInfo* InputDat
 //  入力中
 void ABattleController::InputRun(FButtonInputInfo* InputData,float DeltaSecounds) const
 {
+#if 1
     if (InputData->BeforeContinue)
     {
         InputData->Trigger = false;
     }
     InputData->BeforeContinue = InputData->Coutinue;
+#endif
 }
 
 //  入力リリース
@@ -440,7 +563,23 @@ void ABattleController::InputRelease(ABattleController::FAxisInputInfo* InputDat
 void ABattleController::SetLeftAxis(const FVector2D& LeftAxis)
 {
     InputLeftAxis.CoutinueAxis = LeftAxis;
-//    UE_LOG(LogTemp, Warning, TEXT("Left Axis Set: X=%f, Y=%f"), InputLeftAxis.CoutinueAxis.X, InputLeftAxis.CoutinueAxis.Y);
+
+    if (HasAuthority() == false)
+    {
+        float len = LeftAxis.Size();
+        if (len <= AXIS_DEAD_ZONE)
+        {
+            CallRunOnServerReleaseLeftAxis();
+        }
+        else
+        {
+            CallRunOnServerInputLeftAxis(LeftAxis);
+        }
+    }
+
+    
+    
+    //    UE_LOG(LogTemp, Warning, TEXT("Left Axis Set: X=%f, Y=%f"), InputLeftAxis.CoutinueAxis.X, InputLeftAxis.CoutinueAxis.Y);
 }
 
 // 左スティックの値を取得
@@ -458,6 +597,14 @@ void ABattleController::SetLeftAxisTrigger(const FVector2D& LeftAxis)
 {
     InputLeftAxis.TriggerAxis = LeftAxis;
     InputLeftAxis.BeforeContinue = false;
+
+    if (HasAuthority() == false)
+    {
+        CallRunOnServerReleaseTriggerOk();
+    }
+
+
+
 //    UE_LOG(LogTemp, Warning, TEXT("Left Axis Set: X=%f, Y=%f"), InputLeftAxis.TriggerAxis.X, InputLeftAxis.TriggerAxis.Y);
 
 }
@@ -465,17 +612,166 @@ void ABattleController::SetLeftAxisTrigger(const FVector2D& LeftAxis)
 
 void ABattleController::InputRun(float DeltaSeconds)
 {
-    InputRun(&InputOk,DeltaSeconds);
-    InputRun(&InputCansel,DeltaSeconds);
-    InputRun(&InputPageUp, DeltaSeconds);
-    InputRun(&InputPageDown, DeltaSeconds);
-    InputRun(&InputPageSwitchingLeft, DeltaSeconds);
-    InputRun(&InputPageSwitchingRight, DeltaSeconds);
-    InputRun(&InputPause, DeltaSeconds);
-    InputRun(&InputMasoCD, DeltaSeconds);
-    InputRun(&InputLeftAxis, DeltaSeconds);
+    if (HasAuthority())
+    {
+//        InputRun(&InputOk, DeltaSeconds);
+//        InputRun(&InputCansel, DeltaSeconds);
+        InputRun(&InputPageUp, DeltaSeconds);
+        InputRun(&InputPageDown, DeltaSeconds);
+        InputRun(&InputPageSwitchingLeft, DeltaSeconds);
+        InputRun(&InputPageSwitchingRight, DeltaSeconds);
+        InputRun(&InputPause, DeltaSeconds);
+        InputRun(&InputMasoCD, DeltaSeconds);
+        InputRun(&InputLeftAxis, DeltaSeconds);
+        InputRun(&InputMotion0, DeltaSeconds);
+        InputRun(&InputMotion1, DeltaSeconds);
+        InputRun(&InputMotion2, DeltaSeconds);
+        InputRun(&InputMotion3, DeltaSeconds);
+        InputRun(&InputMotion4, DeltaSeconds);
+        InputRun(&InputMotion5, DeltaSeconds);
+        InputRun(&InputMotion6, DeltaSeconds);
+        InputRun(&InputMotion7, DeltaSeconds);
+
+#if 0
+        if (OkCont)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("TRUE"));
+        }
+        else
+        {
+            UE_LOG(LogTemp, Warning, TEXT("FALSE"));
+        }
+#endif
+    }
+
 }
 
+
+
+
+
+void ABattleController::BeginPlay()
+{
+    Super::BeginPlay();
+    // 初期化コードなどをここに追加
+
+
+    // サーバー側のみでステータスを初期化
+}
+
+void ABattleController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    // ここにレプリケーションするプロパティを追加
+//    DOREPLIFETIME(ABattleController, OkContinuation);
+//    DOREPLIFETIME(ABattleController, OkTrigger);
+}
+
+
+
+void ABattleController::SetupInputComponent()
+{
+    Super::SetupInputComponent();
+    // ここで入力バインディングを設定
+    // 例: InputComponent->BindAction("Cansel", IE_Pressed, this, &ABattleController::Cansel);
+
+//    InputComponent->BindAction("Ok", IE_Pressed, this, &ABattleController::Ok);
+//    InputComponent->BindAction("TriggerOk", IE_Repeat, this, &ABattleController::TriggerOk);
+//    InputComponent->BindAction("ReleaseOk", IE_Released, this, &ABattleController::ReleaseOk);
+}
+
+
+//------------------- ロール選択で使う入力 -------------------
+void ABattleController::ServerRPC_SlotState_Implementation(const ERpoleSelectSlotState RSSState)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_SlotState(RSSState);
+    }
+}
+
+
+void ABattleController::ServerRPC_SlotSelectIndex_Implementation(const int32 SlotIndex)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_SlotSelectIndex(SlotIndex);
+    }
+}
+
+void ABattleController::ServerRPC_GetReady_Implementation(const bool Ready)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_GetReady(Ready);
+    }
+}
+void ABattleController::ServerRPC_RoleSelectState_Implementation(const ERoleSelectState ERSState)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectState(ERSState);
+    }
+}
+
+void ABattleController::ServerRPC_RoleSelectIndex_Implementation(const int32 RSIndex)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectIndex(RSIndex);
+    }
+}
+
+void ABattleController::ServerRPC_RoleSelectJob_Implementation(const EUnitJob job)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectJob(job);
+    }
+}
+
+void ABattleController::ServerRPC_RoleSelectJobBefore_Implementation(const EUnitJob job)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectJobBefore(job);
+    }
+}
+
+void ABattleController::ServerRPC_RoleSelectTime_Implementation(const float RSTime)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectTime(RSTime);
+    }
+}
+
+void ABattleController::ServerRPC_RoleSelectTimeMax_Implementation(const float RSTimeMax)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_RoleSelectTimeMax(RSTimeMax);
+    }
+}
+
+void ABattleController::ServerRPC_ArrangementUnitState_Implementation(const EAUState State)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_ArrangementUnitState(State);
+    }
+}
+
+void ABattleController::ServerRPC_ArrangementStartPosX_Implementation(const int32 X)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_ArrangementStartPosX(X);
+    }
+}
+
+void ABattleController::ServerRPC_ArrangementStartPosY_Implementation(const int32 Y)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_ArrangementStartPosY(Y);
+    }
+}
+
+void ABattleController::ServerRPC_CallID_Implementation(const ERoleSelectCallID ID)
+{
+    if (ARoleSelectPlayerState* PS = GetPlayerState<ARoleSelectPlayerState>()) {
+        PS->SetReplicated_CallID(ID);
+    }
+}
 
 
 

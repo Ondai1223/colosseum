@@ -48,7 +48,7 @@ void AMasoManager::Tick(float DeltaTime)
 }
 
 // パネルの魔素配列に魔素を登録する.
-void AMasoManager::JoinMaso(int X, int Y)
+void AMasoManager::JoinMaso(int X, int Y, FName Type, TObjectPtr<AUnitBattleParameter> ActionUnit, ABattleGameMode* GameMode)
 {   
     // ヘルパークラスを使用する
     BattleHelper helper;
@@ -70,26 +70,21 @@ void AMasoManager::JoinMaso(int X, int Y)
         }
     }
 
-    // ０～２の範囲で数値を出す.
-    int TypeNum = FMath::RandRange(0, 2);
-    UE_LOG(LogTemp, Warning, TEXT("randnum: %d"), TypeNum);
     // 魔素クラスのインスタンス化
-    // 一旦０～２で属性を決める.
-    // TODO:特技の属性によって付与する魔素を決めるようにする.
     TScriptInterface<IMasoInterface> MasoInterface;
-    if (TypeNum == 0)
+    if (Type == FireType)
     {
         // 火属性の魔素インスタンス
         TObjectPtr<UMasoFire> MasoFire = NewObject<UMasoFire>(this, TEXT("UMasoFire"));
         MasoInterface = MasoFire;
     }
-    if (TypeNum == 1)
+    if (Type == WaterType)
     {
         // 水属性の魔素インスタンス
         TObjectPtr<UMasoWater> MasoWater = NewObject<UMasoWater>(this, TEXT("UMasoWater"));
         MasoInterface = MasoWater;
     }
-    if (TypeNum == 2)
+    if (Type == ThunderType)
     {
         // 雷属性の魔素インスタンス
         TObjectPtr<UMasoThunder> MasoThunder = NewObject<UMasoThunder>(this, TEXT("UMasoThunder"));
@@ -98,11 +93,14 @@ void AMasoManager::JoinMaso(int X, int Y)
 
     if (TargetPanel)
     {
+        TargetPanel->PanelX = X;
+        TargetPanel->PanelY = Y;
         int32 MasoKey = -1;
         
         if (TargetPanel->HasMasoData(PanelRight)) // 右側に登録されているか？
         {
             MasoKey = PanelLeft;
+			NewPanelData.ActionUnit = ActionUnit; // 二つ目を付与したユニットの情報を格納.
         }
         else 
         {
@@ -119,7 +117,7 @@ void AMasoManager::JoinMaso(int X, int Y)
             {
                 // 魔素が２つになったら.
                 UE_LOG(LogTemp, Warning, TEXT("魔素が２つあるので発動できるか確認します."));
-                ActivateMasoAction(TargetPanel);
+                ActivateMasoAction(TargetPanel, GameMode);
             }
         }
     }
@@ -241,7 +239,7 @@ void AMasoManager::UpdatePlayer2Maso()
 }
 
 // Player1のターン終了後Player1陣営に付与されている魔素が発動するか確認.
-void AMasoManager::ResolvePlayer1PendingMasoActions()
+void AMasoManager::ResolvePlayer1PendingMasoActions(ABattleGameMode* GameMode)
 {
     for (TObjectPtr<AMasoPanel> panel : Player1MasoPanel)
     {
@@ -249,13 +247,13 @@ void AMasoManager::ResolvePlayer1PendingMasoActions()
         {
             // パネルに魔素が２つある状態.
             UE_LOG(LogTemp, Warning, TEXT("魔素が２つあるので発動できるか確認します."));
-            ActivateMasoAction(panel);
+            ActivateMasoAction(panel, GameMode);
         }
     }
 }
 
 // Player2のターン終了後Player2陣営に付与されている魔素が発動するか確認.
-void AMasoManager::ResolvePlayer2PendingMasoActions()
+void AMasoManager::ResolvePlayer2PendingMasoActions(ABattleGameMode* GameMode)
 {
     for (TObjectPtr<AMasoPanel> panel : Player2MasoPanel)
     {
@@ -263,7 +261,7 @@ void AMasoManager::ResolvePlayer2PendingMasoActions()
         {
             // パネルに魔素が２つある状態.
             UE_LOG(LogTemp, Warning, TEXT("魔素が２つあるので発動できるか確認します."));
-            ActivateMasoAction(panel);
+            ActivateMasoAction(panel, GameMode);
         }
     }
 
@@ -307,7 +305,7 @@ bool AMasoManager::GetCombinedMasoElements(FMasoPanelData* maso1, FMasoPanelData
         UE_LOG(LogTemp, Warning, TEXT("雷と雷を組み合わせます."))
             return true;
     }
-    else if ((Element1 == FireType || Element1 == WaterType)  && (Element1 == FireType || Element1 == WaterType))
+    else if ((Element1 == FireType || Element1 == WaterType)  && (Element2 == FireType || Element2 == WaterType))
     {
         CurrentMasoAction = NewObject<UMasoActionFireWater>(this, TEXT("UMasoActionFireWater"));
         UE_LOG(LogTemp, Warning, TEXT("火と水を組み合わせます."))
@@ -329,10 +327,13 @@ bool AMasoManager::GetCombinedMasoElements(FMasoPanelData* maso1, FMasoPanelData
 }
 
 // 発動型によって魔素の効果を発動させる.
-void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel)
+void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleGameMode* GameMode)
 {
     FMasoPanelData* maso1 = nullptr;
     FMasoPanelData* maso2 = nullptr;
+    ActionPanel = MasoPanel;
+    MasoGameMode = GameMode;
+    JointedUnit = MasoPanel->PanelDataPtr->ActionUnit;
 
     if (MasoPanel->GetMasoPanelData(PanelRight))
     {
@@ -344,6 +345,11 @@ void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel)
     }
     if (GetCombinedMasoElements(maso1, maso2))
     {
+#if 1
+        ClearActionResult();
+        MasoPanel->SetIsActive(true);
+        OnMasoAction();
+#else		
         switch (CurrentMasoAction->GetActionType())
         {
         case EActionType::EAT_Normal: //通常型の処理
@@ -355,32 +361,52 @@ void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel)
             else
             {
                 UE_LOG(LogTemp, Warning, TEXT("通常型：魔素発動します."))
+                ClearActionResult();
                 MasoPanel->SetIsActive(true);
-                CurrentMasoAction->ApplyAction();
-                CurrentMasoAction->ActionEffect(MasoPanel);
-                ResetMasoPanel(MasoPanel);
+                OnMasoAction();
             }
             break;
 
         case EActionType::EAT_Immediate: // 速攻型の処理
             UE_LOG(LogTemp, Warning, TEXT("速攻型：すぐに発動します."))
+            ClearActionResult();
             MasoPanel->SetIsActive(true);
-            CurrentMasoAction->ApplyAction();
-            CurrentMasoAction->ActionEffect(MasoPanel);
-            ResetMasoPanel(MasoPanel);
+            OnMasoAction();
             break;
         }
+#endif
     }
 }
 
 // 魔素パネルを初期の状態にする.
-void AMasoManager::ResetMasoPanel(TObjectPtr<AMasoPanel> MasoPanel)
+void AMasoManager::ResetMasoPanel()
 {
-    MasoPanel->SetIsActive(false);
-    ChangeMasoPanelMaterial(MasoPanel, PanelRight, false);
-    ChangeMasoPanelMaterial(MasoPanel, PanelLeft, false);
-    MasoPanel->AllRemoveMasoPanelData();
+    ActionPanel->SetIsActive(false);
+    ChangeMasoPanelMaterial(ActionPanel, PanelRight, false);
+    ChangeMasoPanelMaterial(ActionPanel, PanelLeft, false);
+    ActionPanel->AllRemoveMasoPanelData();
     UE_LOG(LogTemp, Warning, TEXT("指定された魔素パネルを初期化します."))
+}
+
+void AMasoManager::DeactivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel)
+{
+ 
+}
+
+void AMasoManager::MasoActionEffect()
+{
+    CurrentMasoAction->ActionEffect(ActionPanel);
+}
+
+void AMasoManager::MasoActionCalculate()
+{
+    CurrentMasoAction->CalcAction(&ActionResult, ActionPanel->PanelX, ActionPanel->PanelY, JointedUnit, MasoGameMode);
+    CurrentMasoAction->ReflectAction(ActionResult, MasoGameMode);
+}
+
+float AMasoManager::GetMasoActionTime()
+{
+    return CurrentMasoAction->GetActionTime();
 }
 
 void AMasoManager::CreateNiagaraComponent(TObjectPtr<UNiagaraSystem> MasoPanelNiagaraSystem, UStaticMeshComponent* component, int PanelSideIndex)
@@ -410,6 +436,17 @@ void AMasoManager::CreateNiagaraComponent(TObjectPtr<UNiagaraSystem> MasoPanelNi
     else {
         UE_LOG(LogTemp, Warning, TEXT("Failed to load NiagaraSystem"));
     }
+}
+void AMasoManager::ClearActionResult()
+{
+    ActionResult.ActionUnit = nullptr;
+    ActionResult.ActionAttackResult.AttackTargets.Empty();
+    ActionResult.ActionMoveResult.RouteLocation.Empty();
+    ActionResult.ActionSkillResult.TargetUnits.Empty();
+}
+
+void AMasoManager::OnMasoAction_Implementation()
+{
 }
 
 void AMasoManager::SearchMasoPanelFromWorld()

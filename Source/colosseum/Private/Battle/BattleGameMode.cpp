@@ -848,38 +848,38 @@ void ABattleGameMode::CreateDummyUnits()
 
     FUnitData UnitData; // ユニットデータの生成
     UnitData.TeamID = EUnitTeamID::EUTID_Team1; // ユニットのチームIDを設定
-    UnitData.Job = EUnitJob::EUJ_Tank; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Tank); // ユニットのジョブをタンクに設定
     UnitData.StartPosX = 0;
     UnitData.StartPosY = 0;
     UnitList.Add(UnitData); // ユニットをリストに追加
 
-    UnitData.Job = EUnitJob::EUJ_Rounder; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Rounder); // ユニットのジョブをタンクに設定
     UnitData.StartPosX = 2;
     UnitData.StartPosY = 0;
     UnitList.Add(UnitData); // ユニットをリストに追加
 
-    UnitData.Job = EUnitJob::EUJ_Rounder; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Rounder); // ユニットのジョブをタンクに設定
     UnitData.StartPosX = 1;
     UnitData.StartPosY = 1;
-    UnitData.Job = EUnitJob::EUJ_Magician; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Magician); // ユニットのジョブをタンクに設定
     UnitList.Add(UnitData); // ユニットをリストに追加
 
 
     UnitData = FUnitData(); // ユニットデータの生成
     TArray<FUnitData>& UnitList2 = Player2Units; // ユニットのリストを生成
 
-    UnitData.Job = EUnitJob::EUJ_Tank; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Tank); // ユニットのジョブをタンクに設定
     UnitData.TeamID = EUnitTeamID::EUTID_Team2; // ユニットのチームIDを設定
     UnitData.StartPosX = 1;
     UnitData.StartPosY = 0;
     UnitList2.Add(UnitData); // ユニットをリストに追加
 
-    UnitData.Job = EUnitJob::EUJ_Rounder; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Rounder); // ユニットのジョブをタンクに設定
     UnitData.StartPosX = 2;
     UnitData.StartPosY = 0;
     UnitList2.Add(UnitData); // ユニットをリストに追加
 
-    UnitData.Job = EUnitJob::EUJ_Healer; // ユニットのジョブをタンクに設定
+    UnitData.SetJob(EUnitJob::EUJ_Healer); // ユニットのジョブをタンクに設定
     UnitData.StartPosX = 1;
     UnitData.StartPosY = 1;
     UnitList2.Add(UnitData); // ユニットをリストに追加

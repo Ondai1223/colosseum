@@ -7,6 +7,8 @@
 #include "Battle/MasoPanel.h"
 #include "NiagaraSystem.h"
 #include "NiagaraComponent.h"
+#include "Battle/UnitBattleParameter.h"
+#include "Battle/ActionResultData.h"
 #include "MasoActionBase.generated.h"
 
 UENUM()
@@ -25,12 +27,18 @@ class COLOSSEUM_API UMasoActionBase : public UObject
 
 public:
 
-	virtual void ApplyAction();
+	virtual void CalcAction(FActionResultData* ActionResult, const uint8 PanelX, const uint8 PanelY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode);
+
+	virtual void ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode);
 
 	virtual void ActionEffect(TObjectPtr<AMasoPanel> MasoPanel);
 	
 	virtual EActionType GetActionType();
 
+	virtual float GetActionTime();
+
+	UFUNCTION()
+	void OnIncidenceFinished();
 
 protected:
 
@@ -38,5 +46,14 @@ protected:
 	TObjectPtr<UNiagaraSystem> ActionNiagaraSystem;
 
 	UPROPERTY(Transient)
+	TObjectPtr<UNiagaraSystem> IncidenceNiagaraSystem;
+
+	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> MasoActionEffect;
+
+	TObjectPtr<class AMasoPanel> TargetPanel;
+
+	FTimerHandle EffectTimerHandle;
+
+	float EffectDuration = 0.0;
 };
