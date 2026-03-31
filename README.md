@@ -17,44 +17,44 @@ url: https://github.com/Ondai1223/colosseum.git
 ## 担当箇所
 ### 1. ゲームの核となるロジック実装と設計 (メイン担当)
 
-| 項目 | 詳細 |
+| 項目 | メインシステムの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/Maso*.cpp`, `Source/colosseum/public/Battle/Maso*.h`|
 | **挑戦内容** | ゲームの根幹となる魔素機能および、それに伴う状態管理システムの設計と実装。 |
 | **技術的貢献** | ポリモーフィズムを徹底し、魔素システムを構築。これにより、新しい属性の追加時に既存のコアコードを一切変更しない拡張性を実現。 |
 | **成果と学び** | プロのサポートを受けながらこのロジックを一人で実装。オブジェクト指向設計を実践形式でアウトプットできた。 |
 
-| 項目 | 詳細 |
+| 項目 | メインシステムの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/MasoAction*.cpp`, `Source/colosseum/public/Battle/MasoAction*.h`|
 | **挑戦内容** | 魔素機能の効果発動処理、ストラテジーパターンを意識した。サポートをなるべく受けず、1人で挑戦 |
 | **技術的貢献** | ストラテジーパターンを使用し。新しい効果の追加時に既存のコアコードを一切変更しない、拡張性を実現。 |
 | **成果と学び** | 魔素の効果の計算、エフェクトをBluePrintを連携して実装することができた。BluePrintとC++コードの連携の仕方を学んだ。 |
 
-| 項目 | 詳細 |
+| 項目 | 攻撃コマンドの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/BattleActionAttack.cpp`, `Source/colosseum/public/Battle/BattleActionAttack.h`|
 | **挑戦内容** | 今回のゲーム制作の最初に実装した攻撃コマンド。初めてのC++で機能を実装することに挑戦した。 後にモーション、エフェクトの発生タイミングの調整を行なった|
 | **成果と学び** | プロのサポートを多く受けながら実装。設計というよりC++のチュートリアルとして学習した。プロの方にゲームの作り方を教わった。 |
 
-| 項目 | 詳細 |
+| 項目 | アセットの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/BattleGameMode.cpp`, `Source/colosseum/public/Battle/BattleGameMode.h`, `Source/colosseum/private/Battle/BattleGameMain.cpp`, `Source/colosseum/public/Battle/BattleGameMain.h`|
 | **挑戦内容** | NiagaraSystemやAnimationBluePrint, AnimationMontageなどUnrealEngineの技術に初めて挑戦 プロのコードを読み、設計や技術を吸収することを意識した。 |
 | **成果と学び** | カーソル、モーション、エフェクトなどの実装。C++とUnrealEngineでの記述の理解を深めた。 |
 
 
-| 項目 | 詳細 |
+| 項目 | Widgetの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Title/*.cpp`, `Source/colosseum/public/Title/*.h`|
 | **挑戦内容** | カーソルの移動やUIの適用に初めて挑戦。 |
-| **成果と学び** | タイトル画面の実装。UIの実装に関してはWebでの開発経験があったからか、苦戦することなく実装することができた。カーソルの移動は少し難しかったが、やり方を学ぶことができた。 |
+| **成果と学び** | タイトル画面の実装。UIについてはweb開発の経験を活かし、円滑に実装。カーソルの移動については未経験だったが、UIデザイナーのwidget実装依頼書を熟読し実装を完了した |
 
-| 項目 | 詳細 |
+| 項目 | モーション・エフェクトの実装 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/BattleActionSkill.cpp`, `Source/colosseum/public/Battle/BattleActionSkill.h`|
 | **挑戦内容** | プロから学んだ技術をすぐにアウトプットした。 モーション、エフェクトの発生タイミングや魔素との連携に挑戦|
-| **成果と学び** | スタックとポップを使用した順番処理をプロのエンジニアから学んだ。このようなやり方があるのかと驚き、プログラムは面白いと思った。 |
+| **成果と学び** | スタックとポップを使用した順番処理をプロのエンジニアから学んだ。 |
 ---
 
 ### 2. 開発時の課題への対応と学習
