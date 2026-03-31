@@ -41,22 +41,19 @@ url: https://github.com/Ondai1223/colosseum.git
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/BattleGameMode.cpp`, `Source/colosseum/public/Battle/BattleGameMode.h`, `Source/colosseum/private/Battle/BattleGameMain.cpp`, `Source/colosseum/public/Battle/BattleGameMain.h`|
 | **挑戦内容** | NiagaraSystemやAnimationBluePrint, AnimationMontageなどUnrealEngineの技術に初めて挑戦 プロのコードを読み、設計や技術を吸収することを意識した。 |
-| **技術的貢献** | カーソル、モーション、エフェクトなどの実装に貢献 |
-| **成果と学び** | C++とUnrealEngineでの記述の理解を深めた。 |
+| **成果と学び** | カーソル、モーション、エフェクトなどの実装。C++とUnrealEngineでの記述の理解を深めた。 |
 
 
 | 項目 | 詳細 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Title/*.cpp`, `Source/colosseum/public/Title/*.h`|
 | **挑戦内容** | カーソルの移動やUIの適用に初めて挑戦。 |
-| **技術的貢献** | タイトル画面の実装 |
-| **成果と学び** | UIの実装に関してはWebでの開発経験があったからか、苦戦することなく実装することができた。カーソルの移動は少し難しかったが、やり方を学ぶことができた。 |
+| **成果と学び** | タイトル画面の実装。UIの実装に関してはWebでの開発経験があったからか、苦戦することなく実装することができた。カーソルの移動は少し難しかったが、やり方を学ぶことができた。 |
 
 | 項目 | 詳細 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Battle/BattleActionSkill.cpp`, `Source/colosseum/public/Battle/BattleActionSkill.h`|
-| **挑戦内容** | プロから学んだ技術をすぐにアウトプットした。 |
-| **技術的貢献** | モーション、エフェクトの発生タイミングや魔素との連携に挑戦|
+| **挑戦内容** | プロから学んだ技術をすぐにアウトプットした。 モーション、エフェクトの発生タイミングや魔素との連携に挑戦|
 | **成果と学び** | スタックとポップを使用した順番処理をプロのエンジニアから学んだ。このようなやり方があるのかと驚き、プログラムは面白いと思った。 |
 ---
 
