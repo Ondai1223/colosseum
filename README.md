@@ -37,7 +37,6 @@ url: https://github.com/Ondai1223/colosseum.git
 | **成果と学び** | C++とUnrealEngineでの記述の理解を深めた。 |
 
 
-(途中)
 | 項目 | 詳細 |
 | :--- | :--- |
 | **ファイル** | `Source/colosseum/private/Title/*.cpp`, `Source/colosseum/public/Title/*.h`|
