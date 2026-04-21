@@ -83,6 +83,12 @@ void UBattleSkillItem::OnConfirmed_Implementation()
 {
 }
 
+void UBattleSkillItem::SetSkillIcon_Implementation(EBattleSkillIcon IconID)
+{
+    ;
+}
+
+
 void UBattleSkillItem::SetSkillName(const FText& InName)
 {
     SkillName = InName;
@@ -109,4 +115,5 @@ void UBattleSkillItem::SetSkillData(const FSkillDataType& InData)
 {
     SkillData = InData;
     SetSkillName(SkillData.skill_name);
+    SetSkillIcon(SkillData.icon_id);
 }

@@ -2,8 +2,12 @@
 
 #include "Battle/BattleActionMove.h"
 #include "Battle/BattleHelper.h"
-#include "Battle/BattleGameMode.h"
 
+#ifndef ENABLE_BATTLE_ACTION_INTERFACE_GAME_MODE_PROXY
+#include "Battle/BattleGameMode.h"
+#else
+#include "Battle/BattleGameModeProxy.h"
+#endif
 #define BATTLE_UNIT_MOVE_TIME   1.0f    //  移動時間
 #define BATTLE_UNIT_ROTATE_TIME 0.25f    //  回転時間
 
@@ -11,7 +15,7 @@
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionMove::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionMove::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     //  移動力を取得
     uint8   Moveliy = ActionUnit->GetMobility();
@@ -50,7 +54,7 @@ void UBattleActionMove::SetSelectPanel(int CenterGameX, int CenterGameY, TObject
 //  スキル選択開始
 //  ActionUnit      :   スキルを行使するユニット
 //  GameMode        :   ゲームモード
-void UBattleActionMove::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+void UBattleActionMove::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode)
 {
     ;   //  移動では使わない
 }
@@ -59,7 +63,7 @@ void UBattleActionMove::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& Actio
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
+int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, FSkillDataType& OutSkillData)
 {
     return BATTLE_ACTION_SKILL_SELECT_CANSEL;   //  移動では使わない
 }
@@ -69,7 +73,7 @@ int UBattleActionMove::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionU
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionMove::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionMove::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     ActionResult->ActionUnit = ActionUnit;
     uint8   Moveliy = ActionUnit->GetMobility();
@@ -113,7 +117,7 @@ void UBattleActionMove::CalcAction(FActionResultData* ActionResult, const TArray
 //  アクション結果を反映
 //  ActionResult    :   結果格納先
 //  GameMode        :   ゲームモード
-void UBattleActionMove::ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionMove::ReflectAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
     //  内部のゲーム座標だけ計算
     ActionResult.ActionUnit->SetGameX(ActionResult.ActionMoveResult.MoveLocation.X);
@@ -121,7 +125,7 @@ void UBattleActionMove::ReflectAction(FActionResultData& ActionResult, ABattleGa
 }
 
 //  アクション開始
-void UBattleActionMove::BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionMove::BeginAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
     //  移動開始
     RouteNumMax = ActionResult.ActionMoveResult.RouteLocation.Num();
@@ -171,7 +175,7 @@ void UBattleActionMove::BeginAction(FActionResultData& ActionResult, ABattleGame
 //  DeltaSecounds   :   細分時間
 //  GameMode        :   ゲームモード
 //  @Return         :   true 終了 : false 続行
-bool UBattleActionMove::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode)
+bool UBattleActionMove::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleActionGameModeProxy* GameMode)
 {
     BattleHelper    helper;
 

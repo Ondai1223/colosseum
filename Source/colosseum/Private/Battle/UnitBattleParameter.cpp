@@ -3,11 +3,16 @@
 
 #include "Battle/UnitBattleParameter.h"
 #include "Unit/Unit.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Battle/BattleHelper.h"
 #include "Battle/BattleGameMode.h"
 
 #define UNIT_DEFAULT_SCALE   FVector(0.8f, 0.8f, 0.8f) // ユニットデフォルトスケール
 
+#define Buff_Loop_Effect1 TEXT("/Game/FixEffect/BattleEffect/Ef_Btl_Buff_01.Ef_Btl_Buff_01")
+#define Buff_Loop_Effect2 TEXT("/Game/FixEffect/BattleEffect/Ef_Btl_buff_02.Ef_Btl_buff_02")
+#define Debuff_Loop_Effect1 TEXT("/Game/FixEffect/BattleEffect/Ef_Btl_Debuff_01.Ef_Btl_Debuff_01")
+#define Debuff_Loop_Effect2 TEXT("/Game/FixEffect/BattleEffect/Ef_Btl_Debuff_02.Ef_Btl_Debuff_02")
 
 AUnitBattleParameter::AUnitBattleParameter()
 {
@@ -80,21 +85,50 @@ EUnitJob AUnitBattleParameter::AUnitBattleParameter::GetJobID() const
 //  移動力を返す
 uint8 AUnitBattleParameter::GetMobility() const
 {
-    return UnitActor->GetUnitData().Mobility;
+	uint8 baseMobility = UnitActor->GetUnitData().Mobility;
+	int quantity = 0;
+
+    for (UBuffDebuffBase* BuffDebuff : BuffDebuffArray)
+    {
+        if (BuffDebuff->GetBuffDebuffType() == EBuffDebuffType::EBT_MOVE)
+        {
+            quantity += BuffDebuff->CalcPower(baseMobility);
+        }
+    }
+    return baseMobility + quantity;
 }
 
 
 //  攻撃力を返す
 float AUnitBattleParameter::GetAttackPower() const
 {
-    return UnitActor->GetUnitData().AttackPower;
+	float basePower = UnitActor->GetUnitData().AttackPower;
+	float quantity = 0.0f;
+
+    for (UBuffDebuffBase* BuffDebuff: BuffDebuffArray)
+    {
+        if (BuffDebuff->GetBuffDebuffType() == EBuffDebuffType::EBT_ATTACK)
+        {
+            quantity += BuffDebuff->CalcPower(basePower);
+        }
+	}
+    return basePower + quantity;
 }
 
 //  防御力を返す
 float AUnitBattleParameter::GetDefencePower() const
 {
-    float currentDefensePower = UnitActor->GetUnitData().DefensePower;
+    float basePower = UnitActor->GetUnitData().DefensePower;
+    float quantity = 0.0f;
 
+    for (UBuffDebuffBase* BuffDebuff : BuffDebuffArray)
+    {
+        if (BuffDebuff->GetBuffDebuffType() == EBuffDebuffType::EBT_DEFENSE)
+        {
+            quantity += BuffDebuff->CalcPower(basePower);
+        }
+    }
+    float currentDefensePower =  basePower + quantity;
     // 防御状態なら防御力を上げる
     if(IsDiffence()) return currentDefensePower * DEFENSE_PARAMETER;
 
@@ -156,7 +190,8 @@ void AUnitBattleParameter::SetGameMode(ABattleGameMode* InGameMode)
     GameMode = InGameMode;
 }
 
-TObjectPtr<ABattleGameMode> AUnitBattleParameter::AUnitBattleParameter::GetGameMode() const
+
+TObjectPtr<ABattleGameMode> AUnitBattleParameter::GetGameMode() const
 {
     return GameMode;
 }
@@ -227,6 +262,103 @@ void AUnitBattleParameter::SetMp(float NextMp)
 float AUnitBattleParameter::GetMaxMp() const
 {
     return UnitActor->GetUnitData().MpMax;
+}
+
+void AUnitBattleParameter::AddBuffDebuff(TObjectPtr<UBuffDebuffBase> NewBuff)
+{
+	BuffDebuffArray.Add(NewBuff);
+	BattleCharaStatusWidget->AddBuffDebuffWidget(NewBuff);
+    RefreshBuffEffect();
+}
+
+void AUnitBattleParameter::RemoveBuffDebuff(TObjectPtr<UBuffDebuffBase> BuffDebuff)
+{
+    BuffDebuffArray.Remove(BuffDebuff);
+    BattleCharaStatusWidget->RemoveBuffDebuffWidget(BuffDebuff);
+    RefreshBuffEffect();
+}
+
+void AUnitBattleParameter::CountBuffDebuff(int32& BuffCount, int32& DebuffCount)
+{
+    for (UBuffDebuffBase* BuffDebuff : BuffDebuffArray)
+    {
+        if(BuffDebuff->GetBuffCategory() == EBuffCategory::Buff)
+        {
+            BuffCount++;
+        }
+        else if(BuffDebuff->GetBuffCategory() == EBuffCategory::Debuff)
+        {
+            DebuffCount++;
+		}
+	}
+ 
+}
+
+void AUnitBattleParameter::RefreshBuffEffect()
+{
+	int32 BuffCount = 0;
+	int32 DebuffCount = 0;
+	UNiagaraSystem* TargetBuffSystem = nullptr;
+	UNiagaraSystem* TargetDebuffSystem = nullptr;
+    CountBuffDebuff(BuffCount, DebuffCount);
+    if (BuffCount == 1)
+    {
+        TargetBuffSystem = LoadObject<UNiagaraSystem>(nullptr, Buff_Loop_Effect1);
+    }else if(BuffCount >= 2)
+    {
+        TargetBuffSystem = LoadObject<UNiagaraSystem>(nullptr, Buff_Loop_Effect2);
+    }
+
+    if(DebuffCount == 1)
+    {
+        TargetDebuffSystem = LoadObject<UNiagaraSystem>(nullptr, Debuff_Loop_Effect1);
+    }
+    else if (DebuffCount >= 2)
+    {
+        TargetDebuffSystem = LoadObject<UNiagaraSystem>(nullptr, Debuff_Loop_Effect2);
+    }
+
+    if(CurrentLoopBuffEffect && CurrentLoopBuffEffect->GetAsset() != TargetBuffSystem)
+    {
+       CurrentLoopBuffEffect->DestroyComponent();
+	   CurrentLoopBuffEffect = nullptr;
+	}
+
+    if (CurrentLoopDebuffEffect && CurrentLoopDebuffEffect->GetAsset() != TargetDebuffSystem)
+    {
+        CurrentLoopDebuffEffect->DestroyComponent();
+        CurrentLoopDebuffEffect = nullptr;
+    }
+
+
+    if(TargetBuffSystem && !CurrentLoopBuffEffect)
+    {
+        CurrentLoopBuffEffect = UNiagaraFunctionLibrary::SpawnSystemAttached(
+            TargetBuffSystem, UnitActor->GetUnitModel()->GetRootComponent(), NAME_None,
+            FVector::ZeroVector, FRotator::ZeroRotator,
+            EAttachLocation::SnapToTarget, true);
+    }
+
+    if (TargetDebuffSystem && !CurrentLoopDebuffEffect)
+    {
+        CurrentLoopDebuffEffect = UNiagaraFunctionLibrary::SpawnSystemAttached(
+            TargetDebuffSystem, UnitActor->GetUnitModel()->GetRootComponent(), NAME_None,
+            FVector::ZeroVector, FRotator::ZeroRotator,
+            EAttachLocation::SnapToTarget, true);
+	}
+}
+
+void AUnitBattleParameter::UpdateBuffDebuff()
+{
+    for(int i = BuffDebuffArray.Num()-1; i >= 0; --i)
+    {
+		UBuffDebuffBase* BuffDebuff = BuffDebuffArray[i]; 
+        BuffDebuff->UpdateDuration();
+        if(BuffDebuff->GetDuration() <= 0)
+        {
+            RemoveBuffDebuff(BuffDebuff);
+        }
+	}
 }
 
 bool AUnitBattleParameter::IsActionEnd() const

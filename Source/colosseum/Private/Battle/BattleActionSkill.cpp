@@ -4,7 +4,22 @@
 #include "Battle/BattleActionSkill.h"
 #include "Battle/BattleGameMode.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Battle/BuffAttack.h"
+#include "Battle/BuffDefense.h"
+#include "Battle/BuffMove.h"
+#include "Battle/DebuffAttack.h"
+#include "Battle/DebuffDefense.h"
+#include "Battle/DebuffMove.h"
 #include "Battle/BattleSkillWindow.h"
+
+#ifndef ENABLE_BATTLE_ACTION_INTERFACE_GAME_MODE_PROXY
+#include "Battle/BattleGameMode.h"
+#else
+#include "Battle/BattleGameModeProxy.h"
+#endif // !ENABLE_BATTLE_ACTION_INTERFACE_GAME_MODE_PROXY
+
+
+
 
 #define ATTACK_PARAMETER 15
 #define HEAL_PARAMETER -1.5
@@ -30,7 +45,7 @@
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionSkill::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionSkill::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     FName TargetId = SkillData.target_id;
 
@@ -107,7 +122,7 @@ void UBattleActionSkill::SetSelectPanel(int CenterGameX, int CenterGameY, TObjec
 //  スキル選択開始
 //  ActionUnit      :   スキルを行使するユニット
 //  GameMode        :   ゲームモード
-void UBattleActionSkill::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+void UBattleActionSkill::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode)
 {
     // TODO: マスターデータ作成後対応。ESkillArea等を用意し、Area毎にUnitからの相対位置を計算する予定
     GameMode->InGameWidget->OpenSkillWindow();
@@ -121,7 +136,7 @@ void UBattleActionSkill::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& Acti
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionSkill::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
+int UBattleActionSkill::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, FSkillDataType& OutSkillData)
 {
     // TODO: UnitのIDからマスターデータ参照でSkillID取得。SkillID→Skill情報の取得で実装する予定
     
@@ -177,7 +192,7 @@ int UBattleActionSkill::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& Action
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionSkill::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionSkill::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     ActionResult->ActionUnit = ActionUnit;
     ActionResult->ActionSkillResult.SkillID = 0; // TODO: SkillDataに含まれるIDを使用するなどの対応が必要だが、現状uint32なので0固定かハッシュ値など検討
@@ -247,7 +262,7 @@ void UBattleActionSkill::CalcAction(FActionResultData* ActionResult, const TArra
 //  アクション結果を反映
 //  ActionResult    :   結果格納先
 //  GameMode        :   ゲームモード
-void UBattleActionSkill::ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionSkill::ReflectAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
     // TODO: 一旦BattleActionAttackに合わせておく。マスターデータ対応後、計算式を書く
     for (TArray<FActionAttackTargetData>::TIterator Ite(ActionResult.ActionAttackResult.AttackTargets); Ite; ++Ite)
@@ -273,7 +288,7 @@ void UBattleActionSkill::ReflectAction(FActionResultData& ActionResult, ABattleG
 }
 
 //  アクション開始
-void UBattleActionSkill::BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionSkill::BeginAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
     /*
     BattleHelper    helper;
@@ -374,7 +389,7 @@ void UBattleActionSkill::BeginAction(FActionResultData& ActionResult, ABattleGam
 //  DeltaSecounds   :   細分時間
 //  GameMode        :   ゲームモード
 //  @Return         :   true 終了 : false 続行
-bool UBattleActionSkill::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode)
+bool UBattleActionSkill::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleActionGameModeProxy* GameMode)
 {
     BattleHelper    helper;
     switch (SkillState)
@@ -453,7 +468,10 @@ bool UBattleActionSkill::TickAction(FActionResultData& ActionResult, float Delta
     {
         // スキル処理
         FName Type = ActionResult.ActionSkillResult.SkillData.element_id;
+        UBuffDebuffBase* Buff;
+		EBuffDebuffType BuffDebuffType = ActionResult.ActionSkillResult.SkillData.buffdebuff_type;
 		ESkillAbility Ability = ActionResult.ActionSkillResult.SkillData.skill_ability;
+		float Parameter = ActionResult.ActionSkillResult.SkillData.btl_skl_attack;
         for (TArray<FActionAttackTargetData>::TIterator Ite(ActionResult.ActionAttackResult.AttackTargets); Ite; ++Ite)
         {
             switch (Ability)
@@ -465,7 +483,7 @@ bool UBattleActionSkill::TickAction(FActionResultData& ActionResult, float Delta
                     }
                     else
                     {
-
+						
                         FRotator rotation = FRotator::ZeroRotator;
                         Ite->TargetUnit->PlayAnimationDamage();
 
@@ -480,10 +498,35 @@ bool UBattleActionSkill::TickAction(FActionResultData& ActionResult, float Delta
 					SpawnOthersNiagaraEffect(Ite->TargetUnit->Get3DLocation(), FRotator::ZeroRotator, Ability);
                     break;
                 case ESkillAbility::Buff:
-                    SpawnOthersNiagaraEffect(Ite->TargetUnit->Get3DLocation(), FRotator::ZeroRotator, Ability);
+                    // SpawnOthersNiagaraEffect(Ite->TargetUnit->Get3DLocation(), FRotator::ZeroRotator, Ability);
+                    if (BuffDebuffType == EBuffDebuffType::EBT_ATTACK)
+                    {
+                        Buff = NewObject<UBuffAttack>(Ite->TargetUnit);
+                        Buff->Init(2, Parameter, Ite->TargetUnit->Get3DLocation());
+                        Ite->TargetUnit->AddBuffDebuff(Buff);
+                    }
+                    if (BuffDebuffType == EBuffDebuffType::EBT_DEFENSE)
+                    {
+                        Buff = NewObject<UBuffDefense>(Ite->TargetUnit);
+                        Buff->Init(2, Parameter, Ite->TargetUnit->Get3DLocation());
+                        Ite->TargetUnit->AddBuffDebuff(Buff);
+                    }
+                    
                     break;
                 case ESkillAbility::Debuff:
-                    SpawnOthersNiagaraEffect(Ite->TargetUnit->Get3DLocation(), FRotator::ZeroRotator, Ability);
+                    // SpawnOthersNiagaraEffect(Ite->TargetUnit->Get3DLocation(), FRotator::ZeroRotator, Ability);
+                    if (BuffDebuffType == EBuffDebuffType::EBT_ATTACK)
+                    {
+                        Buff = NewObject<UDebuffAttack>(Ite->TargetUnit);
+                        Buff->Init(2, Parameter, Ite->TargetUnit->Get3DLocation());
+                        Ite->TargetUnit->AddBuffDebuff(Buff);
+                    }
+                    if (BuffDebuffType == EBuffDebuffType::EBT_DEFENSE)
+                    {
+                        Buff = NewObject<UDebuffDefense>(Ite->TargetUnit);
+                        Buff->Init(2, Parameter, Ite->TargetUnit->Get3DLocation());
+                        Ite->TargetUnit->AddBuffDebuff(Buff);
+                    }
                     break;
                 default:
                     break;

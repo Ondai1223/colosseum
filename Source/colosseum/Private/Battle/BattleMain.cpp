@@ -9,7 +9,7 @@
 
 
 
-#define CursorZ -10.0f
+#define CursorZ -15.0f
 // Sets default values
 ABattleMain::ABattleMain()
 {
@@ -175,7 +175,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
             Unit->PlayAnimationBuf();
         }
     }
-    #else 
+    #elseif 0
         // エフェクト発生用(デバッグ)
     FMoveCursorData& cur = (GameMode->GetCurrentBattleTurn() == EBattleTurn::EBT_Player1) ? Player1Cursor : Player2Cursor;
 	TObjectPtr<AUnitBattleParameter> DebugUnit = GameMode->GetUnit(cur.X, cur.Y);
@@ -1035,6 +1035,10 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
 
             //  アクションが終了したときにターンが終了したか調べる
         case EBattleMainState::MBS_EndAction:
+            if (GameMode->MasoManager->IsMasoActionActive())
+            {
+                return ETickBattleState::EBS_Tick;
+            }
             BattleMainState = EBattleMainState::BMS_UnitSelect;
             //  ユニットアクション終了
             GameMode->BattleSelector->AllOffPanel();
@@ -1068,6 +1072,7 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
                     GameMode->MasoManager->UpdatePlayer2Maso();
                     GameMode->MasoManager->ResolvePlayer2PendingMasoActions(GameMode);
                 }
+				GameMode->MasoManager->UpdateTurnMasoActions();
                 return ETickBattleState::EBS_TurnEnd;
             }
             return ETickBattleState::EBS_Tick; // 実行中を返す
@@ -1081,13 +1086,13 @@ ETickBattleState ABattleMain::TickBattleState(ABattleGameMode* GameMode, float D
             UE_LOG(LogTemp, Warning, TEXT("Unknown BattleMainState"));
             break;
     }
-    if (GameMode->BattleController->IsCanselTrigger()) {
+    /*if (GameMode->BattleController->IsCanselTrigger()) {
         //  ターンの終了を選択
         SelectUnit = nullptr;
         CursorModel->SetVisibility(false); // カーソルを非表示にする
         GameMode->ClearActionEndFlag();
         return ETickBattleState::EBS_TurnEnd; // 実行中を返す
-    }
+    }*/
     return ETickBattleState::EBS_Tick; // 実行中を返す
 
 }
@@ -1386,7 +1391,7 @@ void ABattleMain::CreateCursorModel()
             FRotator::ZeroRotator,
             FVector(1.7f, 1.7f, 1.0f),
             EAttachLocation::KeepRelativeOffset,
-            true,
+            false,
             ENCPoolMethod::None,
             true,
             true

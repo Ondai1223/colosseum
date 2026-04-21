@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/TextBlock.h"
 #include "Battle/SkillData.h"
+#include "Battle/BattleCommon.h"
 #include "BattleSkillItem.generated.h"
 
 /**
@@ -33,6 +34,12 @@ public:
     void OnConfirmed();
     virtual void OnConfirmed_Implementation();
 
+    // 特技Iconを設定
+    UFUNCTION(BlueprintNativeEvent, Category = "Battle|Skill")
+    void SetSkillIcon(EBattleSkillIcon IconID);
+    virtual void SetSkillIcon_Implementation(EBattleSkillIcon IconID);
+
+
     // 特技名を設定しUIに反映
     UFUNCTION(BlueprintCallable, Category = "Battle|Skill")
     void SetSkillName(const FText& InName);
@@ -40,6 +47,8 @@ public:
     // 特技データを設定
     UFUNCTION(BlueprintCallable, Category = "Battle|Skill")
     void SetSkillData(const FSkillDataType& InData);
+
+
 
 protected:
     // 再帰的にウィジェットを検索

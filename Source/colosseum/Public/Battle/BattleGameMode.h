@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Battle/BattleCommon.h"
 #include "Battle/BattleUnits.h"
 #include "Battle/BattleSelector.h"
 #include "Battle/Interface/BattleInterface.h"
@@ -28,36 +29,6 @@
 #include "Battle/BattleCommunication.h"
 #include "BattleGameMode.generated.h"
 
-#define UNITDATA_DUMMY  // ダミーユニットデータの定義
-
-UENUM(BlueprintType)
-enum class EBattleTurn : uint8
-{
-    EBT_None        UMETA(DisplayName = "決まってない状態"),    // ターンなし
-    EBT_Player1     UMETA(DisplayName = "ターンプレーヤー１"),  // プレイヤー1のターン
-    EBT_Player2     UMETA(DisplayName = "ターンプレーヤー２"),   // プレイヤー2のターン
-};
-
-UENUM(BlueprintType)
-enum class EBattleState : uint8
-{
-    EBS_Waiting            UMETA(DisplayName = "待機"),   // 待機中
-    EBS_StartTurnDecision   UMETA(DisplayName = "先制後攻の決定"),// 先制後攻の決定
-    EBS_Battle              UMETA(DisplayName = "戦闘中"), // 戦闘中
-    EBS_NextTurn            UMETA(DisplayName = "次のターンに以降"),
-    EBS_Result              UMETA(DisplayName = "結果表示"),       // 結果表示
-    EBS_End                 UMETA(DisplayName = "バトル終了"),        //  バトル終了
-};
-
-UENUM(BlueprintType)
-enum class EBattleResult : uint8
-{
-    EBR_None        UMETA(DisplayName = "結果なし"),    // 結果なし
-    EBR_Player1Win  UMETA(DisplayName = "プレイヤー1の勝利"),  // プレイヤー1の勝利
-    EBR_Player2Win  UMETA(DisplayName = "プレイヤー2の勝利"),   // プレイヤー2の勝利
-    EBR_Draw        UMETA(DisplayName = "引き分け"),   // 引き分け
-};
-
 
 
 
@@ -65,7 +36,7 @@ enum class EBattleResult : uint8
  * ゲームモード
  */
 UCLASS(Blueprintable)
-class COLOSSEUM_API ABattleGameMode : public AGameModeBase
+class COLOSSEUM_API ABattleGameMode : public AGameStateBase
 {
 	GENERATED_BODY()
 
@@ -225,6 +196,8 @@ public:
     void ClearDiffenceNowTeam();
 
 
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+    void CreateBPBattleStateActor();
 
 
 
@@ -412,9 +385,13 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
     EBattleGameMode BattleGameModeType = EBattleGameMode::EBGM_Player_VS_Player;     //  ゲームモードのタイプ(
 
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
     TObjectPtr<ABattleGameStateBase> BattleGameStateBase = nullptr;     //  ゲームモードのタイプ(
 
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Battle)
+    bool ValidGameModeProxy = false;     //  プロキシが有効か？
 
 
 

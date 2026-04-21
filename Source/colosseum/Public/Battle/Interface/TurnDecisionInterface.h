@@ -9,7 +9,17 @@
 
 
 
+//  #define ENABLE_TRUN_DECISION_INTERFACE_GAME_MODE_PROXY    //  ゲームモードプロキシを有効にするかどうか
+
+#ifndef ENABLE_TRUN_DECISION_INTERFACE_GAME_MODE_PROXY
 class ABattleGameMode;
+typedef ABattleGameMode ATurnDecisionGameModeProxy;
+#else
+class ABattleGameModeProxy;
+typedef ABattleGameModeProxy ATurnDecisionGameModeProxy;
+#endif  //
+
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, Blueprintable)
 class UTurnDecisionInterface : public UInterface
@@ -27,10 +37,10 @@ class COLOSSEUM_API ITurnDecisionInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
     // ターン開始決定イベントの開始
-    virtual void BeginTurnDecisionState(ABattleGameMode* GameMode) = 0;
+    virtual void BeginTurnDecisionState(ATurnDecisionGameModeProxy* GameMode) = 0;
 
     // ターン開始決定イベントの表示
-    virtual bool TickTurnDecisionState(ABattleGameMode* GameMode, float DeltaSeconds) = 0;
+    virtual bool TickTurnDecisionState(ATurnDecisionGameModeProxy* GameMode, float DeltaSeconds) = 0;
 };
 
 

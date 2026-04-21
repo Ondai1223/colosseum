@@ -63,6 +63,7 @@ void UMasoActionFireFire::ReflectAction(FActionResultData& ActionResult, ABattle
         if (Ite->TargetUnit->IsDead())
         {
             Ite->TargetUnit->PlayAnimationDeath();
+            GameMode->CheckBattleResult();
         }
         else
         {

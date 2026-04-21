@@ -1049,7 +1049,7 @@ void URoleSelectPage::CreateRoleSelectGph()
 
         for (TActorIterator<ARoleSelectScreen> It(World); It; ++It)
         {
-            FString WorldName = It->GetActorLabel();
+            FString WorldName = It->GetName();
             if (WorldName == BPName)
             {
                 RoleSelectScreen = *It;

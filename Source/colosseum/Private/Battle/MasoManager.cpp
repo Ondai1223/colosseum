@@ -267,6 +267,27 @@ void AMasoManager::ResolvePlayer2PendingMasoActions(ABattleGameMode* GameMode)
 
 }
 
+void AMasoManager::UpdateTurnMasoActions()
+{
+    if(MasoActionList.Num() == 0)
+    {
+        return;
+	}
+   for(int i = MasoActionList.Num()-1; i >= 0 ; --i)
+   {
+       TObjectPtr<UMasoActionBase> MasoAction = MasoActionList[i];     
+       if (MasoAction)
+       {
+           MasoAction->UpdateDuration();
+           if(MasoAction->GetDuration() <= 0)
+           {
+               UE_LOG(LogTemp, Warning, TEXT("0ターンになりました"));
+               MasoActionList.RemoveAt(i);
+		   }
+       }
+   }
+}
+
 // まだパネルに魔素が入るかどうかMax2つ.
 bool AMasoManager::AbleJoin(TObjectPtr<AMasoPanel> MasoPanel)
 {
@@ -289,37 +310,37 @@ bool AMasoManager::GetCombinedMasoElements(FMasoPanelData* maso1, FMasoPanelData
 
     if (Element1 == FireType && Element2 == FireType)
     {
-        CurrentMasoAction = NewObject<UMasoActionFireFire>(this, TEXT("UMasoActionFireFire"));
+        CurrentMasoAction = NewObject<UMasoActionFireFire>(this);
         UE_LOG(LogTemp, Warning, TEXT("火と火を組み合わせます."))
             return true;
     }
     else if (Element1 == WaterType && Element2 == WaterType)
     {
-        CurrentMasoAction = NewObject<UMasoActionWaterWater>(this, TEXT("UMasoActionWaterWater"));
+        CurrentMasoAction = NewObject<UMasoActionWaterWater>(this);
         UE_LOG(LogTemp, Warning, TEXT("水と水を組み合わせます."))
             return true;
     }
     else if (Element1 == ThunderType && Element2 == ThunderType)
     {
-        CurrentMasoAction = NewObject<UMasoActionThunderThunder>(this, TEXT("UMasoActionThunderThunder"));
+        CurrentMasoAction = NewObject<UMasoActionThunderThunder>(this);
         UE_LOG(LogTemp, Warning, TEXT("雷と雷を組み合わせます."))
             return true;
     }
     else if ((Element1 == FireType || Element1 == WaterType)  && (Element2 == FireType || Element2 == WaterType))
     {
-        CurrentMasoAction = NewObject<UMasoActionFireWater>(this, TEXT("UMasoActionFireWater"));
+        CurrentMasoAction = NewObject<UMasoActionFireWater>(this);
         UE_LOG(LogTemp, Warning, TEXT("火と水を組み合わせます."))
         return true;
     }
     else if ((Element1 == WaterType || Element1 == ThunderType) && (Element2 == WaterType|| Element2 == ThunderType))
     {
-        CurrentMasoAction = NewObject<UMasoActionWaterThunder>(this, TEXT("UMasoActionWaterThunder"));
+        CurrentMasoAction = NewObject<UMasoActionWaterThunder>(this);
         UE_LOG(LogTemp, Warning, TEXT("水と雷を組み合わせます."))
         return true;
     }
     else if ((Element1 == ThunderType || Element1 == FireType) && (Element2 == ThunderType || Element2 == FireType))
     {
-        CurrentMasoAction = NewObject<UMasoActionThunderFire>(this, TEXT("UMasoActionThunderFire"));
+        CurrentMasoAction = NewObject<UMasoActionThunderFire>(this);
         UE_LOG(LogTemp, Warning, TEXT("雷と火を組み合わせます."))
         return true;
     }
@@ -329,6 +350,7 @@ bool AMasoManager::GetCombinedMasoElements(FMasoPanelData* maso1, FMasoPanelData
 // 発動型によって魔素の効果を発動させる.
 void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleGameMode* GameMode)
 {
+    UMasoActionBase* NewAction = nullptr;
     FMasoPanelData* maso1 = nullptr;
     FMasoPanelData* maso2 = nullptr;
     ActionPanel = MasoPanel;
@@ -345,12 +367,18 @@ void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleG
     }
     if (GetCombinedMasoElements(maso1, maso2))
     {
-#if 1
+		NewAction = CurrentMasoAction;
+		CurrentMasoAction = nullptr;
+    }
+
+    if(NewAction)
+    {
+#if 0
         ClearActionResult();
         MasoPanel->SetIsActive(true);
         OnMasoAction();
 #else		
-        switch (CurrentMasoAction->GetActionType())
+        switch (NewAction->GetActionType())
         {
         case EActionType::EAT_Normal: //通常型の処理
             if (maso1->DisappearTurn == 2 && maso2->DisappearTurn == 2)
@@ -363,7 +391,7 @@ void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleG
                 UE_LOG(LogTemp, Warning, TEXT("通常型：魔素発動します."))
                 ClearActionResult();
                 MasoPanel->SetIsActive(true);
-                OnMasoAction();
+                OnMasoAction(NewAction);
             }
             break;
 
@@ -371,7 +399,7 @@ void AMasoManager::ActivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel, ABattleG
             UE_LOG(LogTemp, Warning, TEXT("速攻型：すぐに発動します."))
             ClearActionResult();
             MasoPanel->SetIsActive(true);
-            OnMasoAction();
+            OnMasoAction(NewAction);
             break;
         }
 #endif
@@ -393,20 +421,20 @@ void AMasoManager::DeactivateMasoAction(TObjectPtr<AMasoPanel> MasoPanel)
  
 }
 
-void AMasoManager::MasoActionEffect()
+void AMasoManager::MasoActionEffect(UMasoActionBase* MasoAction)
 {
-    CurrentMasoAction->ActionEffect(ActionPanel);
+    MasoAction->ActionEffect(ActionPanel);
 }
 
-void AMasoManager::MasoActionCalculate()
+void AMasoManager::MasoActionCalculate(UMasoActionBase* MasoAction)
 {
-    CurrentMasoAction->CalcAction(&ActionResult, ActionPanel->PanelX, ActionPanel->PanelY, JointedUnit, MasoGameMode);
-    CurrentMasoAction->ReflectAction(ActionResult, MasoGameMode);
+    MasoAction->CalcAction(&ActionResult, ActionPanel->PanelX, ActionPanel->PanelY, JointedUnit, MasoGameMode);
+    MasoAction->ReflectAction(ActionResult, MasoGameMode);
 }
 
-float AMasoManager::GetMasoActionTime()
+float AMasoManager::GetMasoActionTime(UMasoActionBase* MasoAction)
 {
-    return CurrentMasoAction->GetActionTime();
+    return MasoAction->GetActionTime();
 }
 
 void AMasoManager::CreateNiagaraComponent(TObjectPtr<UNiagaraSystem> MasoPanelNiagaraSystem, UStaticMeshComponent* component, int PanelSideIndex)
@@ -445,7 +473,19 @@ void AMasoManager::ClearActionResult()
     ActionResult.ActionSkillResult.TargetUnits.Empty();
 }
 
-void AMasoManager::OnMasoAction_Implementation()
+bool AMasoManager::IsMasoActionActive()
+{
+    for (UMasoActionBase* MasoAction : MasoActionList)
+    {
+        if (MasoAction && MasoAction->IsEffected)
+        {
+            return true;
+	    }
+    }
+    return false;
+}
+
+void AMasoManager::OnMasoAction_Implementation(UMasoActionBase* LaunchedAction)
 {
 }
 

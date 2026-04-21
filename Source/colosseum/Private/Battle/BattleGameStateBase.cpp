@@ -4,7 +4,16 @@
  * 戦闘のゲームステートを管理するクラス
  */
 #include "Battle/BattleGameStateBase.h"
+#include "Battle/BattleGameMode.h"
+#include "EngineUtils.h"
 #include "Camera/CameraActor.h"
+
+
+#define BATTLE_GAME_MODE_PROXY_NAME    TEXT("/Game/Battle/Blueprints/BP_BattleGameModeProxy.BP_BattleGameModeProxy_C") //  ゲームモード代理
+
+void ABattleGameStateBase::CreateBPBattleGameModeProxy()
+{
+}
 
 void ABattleGameStateBase::SetupNetWork()
 {
@@ -46,6 +55,11 @@ void ABattleGameStateBase::SetupBattle()
 void ABattleGameStateBase::SetBattleInGameWidget(UBattleInGameWidget* InGameWidget)
 {
     InGameWidgetProxy->InGameWidget = InGameWidget;
+}
+
+//  ゲームモードプロキシ(代理)の設定
+void ABattleGameStateBase::SetupGameModeProxy(ABattleGameMode* GameMode)
+{
 }
 
 void ABattleGameStateBase::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const

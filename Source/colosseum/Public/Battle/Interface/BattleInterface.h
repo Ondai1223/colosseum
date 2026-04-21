@@ -15,7 +15,16 @@ enum class ETickBattleState : uint8
 };
 
 
+//#define ENABLE_BATTLE_INTERFACE_GAME_MODE_PROXY    //  ゲームモードプロキシを有効にするかどうか
+
+#ifndef ENABLE_BATTLE_INTERFACE_GAME_MODE_PROXY
 class ABattleGameMode;
+typedef ABattleGameMode ABattleInterfaceGameModeProxy;
+#else
+class ABattleGameModeProxy;
+typedef ABattleGameModeProxy ABattleInterfaceGameModeProxy;
+#endif  //
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, Blueprintable)
 class UBattleInterface : public UInterface
@@ -33,9 +42,9 @@ class COLOSSEUM_API IBattleInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
     // 戦闘開始前の先制後攻の決定イベント
-    virtual void BeginBattleState(ABattleGameMode* GameMode) = 0;
+    virtual void BeginBattleState(ABattleInterfaceGameModeProxy* GameMode) = 0;
 
     // 戦闘開始前の先制後攻の表示イベント
     // trueで次の状態へ
-    virtual ETickBattleState TickBattleState(ABattleGameMode* GameMode, float DeltaSeconds) = 0;
+    virtual ETickBattleState TickBattleState(ABattleInterfaceGameModeProxy* GameMode, float DeltaSeconds) = 0;
 };

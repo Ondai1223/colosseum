@@ -96,6 +96,10 @@ public:
 public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Unit)
     FVector2D UnitFaceUV = FVector2D::ZeroVector; //  ユニット表情UV
+
+public:
+	TObjectPtr<AUnitModel> GetUnitModel() const { return UnitModel; }
+
 private:
     FUnitData UnitBaseData; // ユニットデータ
     UPROPERTY(Transient)

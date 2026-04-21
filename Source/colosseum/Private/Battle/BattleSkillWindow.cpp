@@ -101,6 +101,8 @@ void UBattleSkillWindow::ApplySkillData(EUnitJob Job)
     FProperty* MotionProp = RowStruct->FindPropertyByName(TEXT("motion_id"));
     FProperty* TargetProp = RowStruct->FindPropertyByName(TEXT("target_id"));
     FProperty* AbilityProp = RowStruct->FindPropertyByName(TEXT("skill_ability"));
+    FProperty* BuffDebuffProp = RowStruct->FindPropertyByName(TEXT("buffdebuff_type"));
+    FProperty* SkillIconProp = RowStruct->FindPropertyByName(TEXT("icon_id"));
 
     if (!NameProp || !CharProp)
     {
@@ -113,6 +115,8 @@ void UBattleSkillWindow::ApplySkillData(EUnitJob Job)
             if (!MotionProp && PropName.StartsWith(TEXT("motion_id"))) MotionProp = *It;
             if (!TargetProp && PropName.StartsWith(TEXT("target_id"))) TargetProp = *It;
             if (!AbilityProp && PropName.StartsWith(TEXT("skill_ability"))) AbilityProp = *It;
+            if (!BuffDebuffProp && PropName.StartsWith(TEXT("buffdebuff_type"))) BuffDebuffProp = *It;
+            if (!SkillIconProp && PropName.StartsWith(TEXT("icon_id"))) SkillIconProp = *It;
         }
     }
 
@@ -204,6 +208,33 @@ void UBattleSkillWindow::ApplySkillData(EUnitJob Job)
                 }
             }
 
+            // buffdebuff_type
+            if (BuffDebuffProp)
+            {
+                if (FEnumProperty* EnumProp = CastField<FEnumProperty>(BuffDebuffProp))
+                {
+                    // プロパティから数値（uint8相当）を取得
+                    int64 EnumValue = EnumProp->GetUnderlyingProperty()->GetSignedIntPropertyValue(EnumProp->ContainerPtrToValuePtr<void>(RowData));
+                    // EBuffDebuffType型にキャストして代入
+                    NewSkillData.buffdebuff_type = static_cast<EBuffDebuffType>(EnumValue);
+                }
+            }
+
+            // icon_id
+            if (SkillIconProp)
+            {
+                if (FEnumProperty* EnumProp = CastField<FEnumProperty>(SkillIconProp))
+                {
+                    // プロパティから数値（uint8相当）を取得
+                    int64 EnumValue = EnumProp->GetUnderlyingProperty()->GetSignedIntPropertyValue(EnumProp->ContainerPtrToValuePtr<void>(RowData));
+                    // EBuffDebuffType型にキャストして代入
+                    NewSkillData.icon_id = static_cast<EBattleSkillIcon>(EnumValue);
+                }
+            }
+
+
+
+
             // SkillParameter.h reflects values from DT_SkillParameter (matching RowName)
             if (SkillParamTable)
             {
@@ -236,9 +267,6 @@ void UBattleSkillWindow::ApplySkillData(EUnitJob Job)
                         {
                             NewSkillData.element_id = FName(*CastField<FStrProperty>(ElemProp)->GetPropertyValue_InContainer(ParamRowData));
                             UE_LOG(LogTemp, Warning, TEXT("Skill %s: Found skl_element as FNameProperty, value=%s"), *SkillRowName.ToString(), *NewSkillData.element_id.ToString());
-                        }
-                        else {
-							UE_LOG(LogTemp, Warning, TEXT("ダメダメダメダメダメダメ"));
                         }
                     }
                     auto GetFloatValue = [&](const TCHAR* PropName, float& OutValue) {

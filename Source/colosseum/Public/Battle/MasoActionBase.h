@@ -9,6 +9,13 @@
 #include "NiagaraComponent.h"
 #include "Battle/UnitBattleParameter.h"
 #include "Battle/ActionResultData.h"
+#include "Battle/BuffDebuffBase.h"
+#include "Battle/BuffAttack.h"
+#include "Battle/BuffDefense.h"
+#include "Battle/BuffMove.h"
+#include "Battle/DebuffAttack.h"
+#include "Battle/DebuffDefense.h"
+#include "Battle/DebuffMove.h"
 #include "MasoActionBase.generated.h"
 
 UENUM()
@@ -40,6 +47,12 @@ public:
 	UFUNCTION()
 	void OnIncidenceFinished();
 
+	void UpdateDuration();
+
+	int32 GetDuration() const { return Duration; }
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool IsEffected = false; // –‚‘fŒø‰Ê‚ª”­“®‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
 protected:
 
 	UPROPERTY(Transient)
@@ -51,9 +64,12 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> MasoActionEffect;
 
+	UPROPERTY(Transient)
 	TObjectPtr<class AMasoPanel> TargetPanel;
 
 	FTimerHandle EffectTimerHandle;
 
-	float EffectDuration = 0.0;
+	float EffectDuration = 0.0f;
+
+	int32 Duration = 0;
 };

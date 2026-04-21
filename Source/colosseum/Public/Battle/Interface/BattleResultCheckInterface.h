@@ -6,8 +6,16 @@
 #include "UObject/Interface.h"
 #include "BattleResultCheckInterface.generated.h"
 
+//  #define ENABLE_BATTLE_RESULT_CHECK_INTERFACE_GAME_MODE_PROXY    //  ゲームモードプロキシを有効にするかどうか
 
+#ifndef ENABLE_BATTLE_RESULT_CHECK_INTERFACE_GAME_MODE_PROXY
 class ABattleGameMode;
+typedef ABattleGameMode ABattleResultCheckGameModeProxy;
+#else
+class ABattleGameModeProxy;
+typedef ABattleGameModeProxy ABattleResultCheckGameModeProxy;
+#endif  //
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UBattleResultCheckInterface : public UInterface
@@ -26,6 +34,6 @@ class COLOSSEUM_API IBattleResultCheckInterface
 public:
 
 
-    virtual void CheckBattleResult(ABattleGameMode* GameMode) = 0;
+    virtual void CheckBattleResult(ABattleResultCheckGameModeProxy* GameMode) = 0;
 
 };

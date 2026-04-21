@@ -3,7 +3,13 @@
 #include "Battle/BattleActionAttack.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+
+#ifndef ENABLE_BATTLE_ACTION_INTERFACE_GAME_MODE_PROXY
 #include "Battle/BattleGameMode.h"
+#else
+#include "Battle/BattleGameModeProxy.h"
+#endif // ENABLE_BATTLE_ACTION_INTERFACE_GAME_MODE_PROXY
+
 
 #define BP_BATTLE_ATTACK_CAMERA_PATH TEXT("/Game/Battle/Blueprints/BP_BattleAttackCamera.BP_BattleAttackCamera_C")  /// BP_Unit
 #define BATTLE_ATTACK_CAMERA_MOVE_TIME 0.01f
@@ -15,7 +21,7 @@
 //  CenterGameX     :   中心となるX座標
 //  CenterGameY     :   中心となるX座標
 //  GameMode        :   ゲームモード
-void UBattleActionAttack::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionAttack::SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     //  攻撃範囲の設定
     GameMode->BattleSelector->SetPanel(CenterGameX + 1, CenterGameY,true);
@@ -28,7 +34,7 @@ void UBattleActionAttack::SetSelectPanel(int CenterGameX, int CenterGameY, TObje
 //  スキル選択開始
 //  ActionUnit      :   スキルを行使するユニット
 //  GameMode        :   ゲームモード
-void UBattleActionAttack::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode)
+void UBattleActionAttack::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode)
 {
     ;   //  攻撃では使用しない
 }
@@ -37,7 +43,7 @@ void UBattleActionAttack::SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& Act
 //  -1でまだ選択が終わっていない
 //  -2でキャンセル
 //  0以上で選択したスキル
-int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData)
+int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, FSkillDataType& OutSkillData)
 {
     ;   //  攻撃では使用しない
     return BATTLE_ACTION_SKILL_SELECT_CANSEL;
@@ -49,7 +55,7 @@ int UBattleActionAttack::SelectSkillTick(TObjectPtr<AUnitBattleParameter>& Actio
 //  ActionUnit      :   アクションを起こすユニット
 //  GameMode        :   ゲームモード
 //  SkillID         :   スキルID(特技を選択した時のみ有効）
-void UBattleActionAttack::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData)
+void UBattleActionAttack::CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData)
 {
     //  ダメージ計算
     //  共通のアクションユニットの設定
@@ -93,7 +99,7 @@ void UBattleActionAttack::CalcAction(FActionResultData* ActionResult, const TArr
 //  アクション結果を反映
 //  ActionResult    :   結果格納先
 //  GameMode        :   ゲームモード
-void UBattleActionAttack::ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionAttack::ReflectAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
     //  数値の反映
     //  ここでは数値の反映だけを行います。アニメーションなどはBeginAction,TickAction内で行ってください
@@ -111,7 +117,7 @@ void UBattleActionAttack::ReflectAction(FActionResultData& ActionResult, ABattle
 }
 
 //  アクション開始
-void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode)
+void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode)
 {
    
 
@@ -219,7 +225,7 @@ void UBattleActionAttack::BeginAction(FActionResultData& ActionResult, ABattleGa
 //  DeltaSecounds   :   細分時間
 //  GameMode        :   ゲームモード
 //  @Return         :   true 終了 : false 続行
-bool UBattleActionAttack::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode)
+bool UBattleActionAttack::TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleActionGameModeProxy* GameMode)
 {
 
     BattleHelper    helper;

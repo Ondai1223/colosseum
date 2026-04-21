@@ -28,6 +28,7 @@
 #define UNIT_BATTLE_START_YAW_PLAYER1   -90.0f  //  スタート位置の角度(プレイヤー１）
 #define UNIT_BATTLE_START_YAW_PLAYER2   90.0f   //  スタート位置の角度(プレイヤー２）
 
+#define BP_BATTLE_GAME_STATE_ACTOR  TEXT("/Game/Battle/Blueprints/BP_BattleGameStateBase.BP_BattleGameStateBase_C")
 
 // コンストラクタ
 ABattleGameMode::ABattleGameMode()
@@ -128,7 +129,7 @@ void ABattleGameMode::SetupBattle()
     CreateUnits(BPUnit1Array, Player1Units);
     CreateUnits(BPUnit2Array, Player2Units);
 
-    InGameWidget = GetGameState<ABattleGameStateBase>()->InGameWidgetProxy;
+    InGameWidget = BattleGameStateBase->InGameWidgetProxy;
 
     //  ユニットバトルパラメーターの作成
     CreateUnitBattleParameter(Player1UnitsActors, BPUnit1Array,this);
@@ -554,6 +555,22 @@ void ABattleGameMode::ClearDiffenceNowTeam()
         for (TArray<TObjectPtr<AUnitBattleParameter>>::TIterator Ite(Player2UnitsActors); Ite; ++Ite)
         {
             (*Ite)->ClearActionDiffence();
+        }
+    }
+}
+
+
+void ABattleGameMode::CreateBPBattleStateActor()
+{
+    if (BattleGameStateBase == nullptr)
+    {
+        BattleHelper    helper;
+
+        TSubclassOf<class ABattleGameStateBase> BP = helper.Load<ABattleGameStateBase>(BP_BATTLE_GAME_STATE_ACTOR);
+
+        if (BP)
+        {
+            BattleGameStateBase = GetWorld()->SpawnActor<class ABattleGameStateBase>(BP);
         }
     }
 }

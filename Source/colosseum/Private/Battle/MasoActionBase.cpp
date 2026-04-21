@@ -14,6 +14,7 @@ void UMasoActionBase::ReflectAction(FActionResultData& ActionResult, ABattleGame
 
 void UMasoActionBase::ActionEffect(TObjectPtr<AMasoPanel> MasoPanel)
 {
+    IsEffected = true;
     TargetPanel = MasoPanel;
     // 魔素効果発動時のIncidenceエフェクト再生
     if (IncidenceNiagaraSystem)
@@ -74,6 +75,27 @@ void UMasoActionBase::OnIncidenceFinished()
             );
         }
     }
+}
+
+void UMasoActionBase::UpdateDuration()
+{
+    Duration--;
+    UE_LOG(LogTemp, Warning, TEXT("魔素アクションの残りターン数: %d"), Duration);
+
+     if (Duration <= 0)
+     {
+         if (GetWorld())
+         {
+             GetWorld()->GetTimerManager().ClearTimer(this->EffectTimerHandle);
+         }
+
+         if (MasoActionEffect)
+         {
+             MasoActionEffect->DestroyComponent();
+			 MasoActionEffect = nullptr;
+             UE_LOG(LogTemp, Warning, TEXT("Effect Destroyed!"));
+         }
+	 }
 }
 
  EActionType UMasoActionBase::GetActionType()

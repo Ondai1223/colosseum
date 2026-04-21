@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "Battle/BuffDebuffBase.h"
+#include "Battle/BattleCommon.h"
 #include "SkillData.generated.h"
 
 UENUM(BlueprintType)
@@ -49,4 +51,10 @@ struct FSkillDataType : public FTableRowBase
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
     ESkillAbility skill_ability;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+    EBuffDebuffType buffdebuff_type;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill")
+    EBattleSkillIcon    icon_id;
 };

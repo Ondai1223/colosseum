@@ -6,6 +6,9 @@
 
 #define CHAR_FACE_NAME_1P   TEXT("WBP_InGame_CharaFace_1P")
 #define CHAR_FACE_NAME_2P   TEXT("WBP_InGame_CharaFace_2P")
+
+#define BUFFDEBUFF_1P   TEXT("WBP_BuffDebuff_1P")
+#define BUFFDEBUFF_2P   TEXT("WBP_BuffDebuff_2P")
 #define HP_GAUGE_NAME      "HP"
 #define MP_GAUGE_NAME      "MP"
 
@@ -14,7 +17,7 @@ void UBattleCharaStatusWidget::NativeConstruct()
     Super::NativeConstruct();
     // ここに初期化コードを追加できます
 
-
+    
 
 }
 
@@ -50,10 +53,12 @@ void UBattleCharaStatusWidget::SetUnitBattleParameter(class AUnitBattleParameter
     if (GetUnitTeamID() == EUnitTeamID::EUTID_Team1)
     {
         CharactorFace = Cast<UCharaFace>(GetWidgetFromName(CHAR_FACE_NAME_1P));
+		BuffDebuffWidget = Cast<UBuffDebuffWidget>(GetWidgetFromName(BUFFDEBUFF_1P));
     }
     else
     {
         CharactorFace = Cast<UCharaFace>(GetWidgetFromName(CHAR_FACE_NAME_2P));
+		BuffDebuffWidget = Cast<UBuffDebuffWidget>(GetWidgetFromName(BUFFDEBUFF_2P));
     }
 
     if (BattleUnitParameter)
@@ -226,4 +231,14 @@ float UBattleCharaStatusWidget::GetMpRatio() const
         }
     }
     return 0.0f;
+}
+
+void UBattleCharaStatusWidget::AddBuffDebuffWidget(UBuffDebuffBase* BuffDebuff)
+{
+	BuffDebuffWidget->AddBuffDebuffIcon(BuffDebuff);
+}
+
+void UBattleCharaStatusWidget::RemoveBuffDebuffWidget(UBuffDebuffBase* BuffDebuff)
+{
+	BuffDebuffWidget->RemoveBuffDebuffIcon(BuffDebuff);
 }

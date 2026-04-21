@@ -7,7 +7,9 @@
 #include "Unit/UnitData.h"
 #include "Unit/Interface/UnitAnimationInterface.h"
 #include "Unit/Interface/UnitFaceInterface.h"
-
+#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
+#include "Battle/BuffDebuffBase.h"
 #include "UnitBattleParameter.generated.h"
 
 #define CATEGORY_Battle "Battle"
@@ -28,6 +30,7 @@ enum class EBattleCommmand : uint8
 
 
 class ABattleGameMode;
+class ABattleGameModeProxy;
 class AUnit;
 class UBattleCharaStatusWidget;
 class UBattleGauge;
@@ -114,6 +117,14 @@ public:
     float GetMp() const;
     void SetMp(float NextMp);
     float GetMaxMp() const;
+
+	//  バフデバフの付与と除去
+	void AddBuffDebuff(TObjectPtr<UBuffDebuffBase> NewBuff);
+	void RemoveBuffDebuff(TObjectPtr<UBuffDebuffBase> BuffDebuff);
+    void CountBuffDebuff(int32& BuffCount, int32& DebuffCount);
+	void RefreshBuffEffect();
+    UFUNCTION(BlueprintCallable, Category = CATEGORY_Battle)
+	void UpdateBuffDebuff();
 
     //  ユニットアクターの取得
 
@@ -282,7 +293,14 @@ private:
     UPROPERTY(Transient)
     TObjectPtr<UBattleGauge> BattleMpGauge;
 
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UBuffDebuffBase>> BuffDebuffArray;
+    
+    UPROPERTY(Transient)
+    TObjectPtr<UNiagaraComponent> CurrentLoopBuffEffect;
 
+    UPROPERTY(Transient)
+    TObjectPtr<UNiagaraComponent> CurrentLoopDebuffEffect;
 
 
     //  戦闘中で使うパラメータ

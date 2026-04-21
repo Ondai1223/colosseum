@@ -24,6 +24,10 @@ public:
 	void ChangeButton();
 
 	void Init();
+
+	UFUNCTION(BlueprintCallable, Category = CATEGORY_Title)
+	void TitleTick(float DeltaSeconds);
+
 	// 通知を受け取った時に実行する関数
 	UFUNCTION()
 	void HandleInputChanged();
@@ -32,6 +36,9 @@ public:
 
 	void DecrementCursor();
 	
+	UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Title)
+	void BeginNextLevel();
+	virtual void BeginNextLevel_Implementation();
 
 private:
 	UPROPERTY(Transient)
@@ -42,5 +49,9 @@ private:
 
 	UPROPERTY(Transient)
 	int SelectCursor = 0;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = CATEGORY_Title)
+	FName NextLevelName = TEXT("BattleMap");
 
 };

@@ -7,6 +7,8 @@
 #include "Blueprint/UserWidget.h"
 #include "Battle/UnitBattleParameter.h"
 #include "Battle/BattleGauge.h"
+#include "Battle/BuffDebuffWidget.h"
+#include "Battle/BuffDebuffBase.h"
 #include "Common/CharaFace.h"
 #include "BattleCharaStatusWidget.generated.h"
 
@@ -113,11 +115,13 @@ public:
 
     AUnitBattleParameter* GetUnitBattleParameter() const { return BattleUnitParameter; }
 
+    void AddBuffDebuffWidget(UBuffDebuffBase* BuffDebuff);
 
+	void RemoveBuffDebuffWidget(UBuffDebuffBase* BuffDebuff);
 public:
     TObjectPtr<UCharaFace>  CharactorFace;  //  顔
 
-
+    TObjectPtr<UBuffDebuffWidget> BuffDebuffWidget;  //  バフデバフウィジェット
 private:
 
     TObjectPtr<AUnitBattleParameter> BattleUnitParameter;

@@ -64,6 +64,7 @@ void UMasoActionThunderThunder::ReflectAction(FActionResultData& ActionResult, A
         if (Ite->TargetUnit->IsDead())
         {
             Ite->TargetUnit->PlayAnimationDeath();
+            GameMode->CheckBattleResult();
         }
         else
         {

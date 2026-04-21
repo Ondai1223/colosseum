@@ -6,7 +6,16 @@
 #include "UObject/Interface.h"
 #include "NextTurnInterface.generated.h"
 
+
+//  #define ENABLE_NEXT_TURN_INTERFACE_GAME_MODE_PROXY    //  ゲームモードプロキシを有効にするかどうか
+
+#ifndef ENABLE_NEXT_TURN_INTERFACE_GAME_MODE_PROXY
 class ABattleGameMode;
+typedef ABattleGameMode ANextTurnGameModeProxy;
+#else
+class ABattleGameModeProxy;
+typedef ABattleGameModeProxy ANextTurnGameModeProxy;
+#endif  //
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, Blueprintable)
 class UNextTurnInterface : public UInterface
@@ -25,9 +34,9 @@ class COLOSSEUM_API INextTurnInterface
 public:
 
     // 次のターンの開始イベント
-    virtual void BeginNextTurnState(class ABattleGameMode* GameMode) = 0;
+    virtual void BeginNextTurnState(ANextTurnGameModeProxy* GameMode) = 0;
 
     // 次のターンの状態を表示イベント
-    virtual bool TickNextTurnState(class ABattleGameMode* GameMode, float DeltaSeconds) = 0;
+    virtual bool TickNextTurnState(ANextTurnGameModeProxy* GameMode, float DeltaSeconds) = 0;
 
 };

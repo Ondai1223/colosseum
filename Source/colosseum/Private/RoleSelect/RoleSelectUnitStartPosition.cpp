@@ -38,7 +38,7 @@ void URoleSelectUnitStartPosition::SetArrangementUnit(EUnitJob Job,int SlotNo)
 
             for (TActorIterator<ARoleArrangementUnitStage> It(World); It; ++It)
             {
-                FString WorldName = It->GetActorLabel();
+                FString WorldName = It->GetName();
                 if (WorldName == BPName)
                 {
                     RoleArrangementUnitStage = *It;

@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "Battle/Interface/BattleActionInterface.h"
 #include "Battle/BattleAttackCamera.h"
+#include "Battle/BuffDebuffBase.h"
 #include "NiagaraSystem.h"
 #include "BattleActionSkill.generated.h"
 
@@ -48,41 +49,41 @@ public:
     //  CenterGameX     :   中心となるX座標
     //  CenterGameY     :   中心となるX座標
     //  GameMode        :   ゲームモード
-    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) override;
+    virtual void SetSelectPanel(int CenterGameX, int CenterGameY, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData) override;
 
 
     //  スキル選択開始
     //  ActionUnit      :   スキルを行使するユニット
     //  GameMode        :   ゲームモード
-    virtual void SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode) override;
+    virtual void SelectSkillBegin(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode) override;
 
     //  スキル選択のTick
     //  -1でまだ選択が終わっていない
     //  -2でキャンセル
     //  0以上で選択したスキル
-    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, FSkillDataType& OutSkillData) override;
+    virtual int SelectSkillTick(TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, FSkillDataType& OutSkillData) override;
     //  アクション計算
     //  ActionResult    :   アクション結果格納先
     //  TargetLocations :   ターゲットするゲーム座標
     //  ActionUnit      :   アクションを起こすユニット
     //  GameMode        :   ゲームモード
     //  SkillID         :   スキルID(特技を選択した時のみ有効）
-    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleGameMode* GameMode, const FSkillDataType& SkillData) override;
+    virtual void CalcAction(FActionResultData* ActionResult, const TArray<FGameLocation>& TargetLocations, TObjectPtr<AUnitBattleParameter>& ActionUnit, ABattleActionGameModeProxy* GameMode, const FSkillDataType& SkillData) override;
 
     //  アクション結果を反映
     //  ActionResult    :   結果格納先
     //  GameMode        :   ゲームモード
-    virtual void ReflectAction(FActionResultData& ActionResult, ABattleGameMode* GameMode) override;
+    virtual void ReflectAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode) override;
 
     //  アクション開始
-    virtual void BeginAction(FActionResultData& ActionResult, ABattleGameMode* GameMode) override;
+    virtual void BeginAction(FActionResultData& ActionResult, ABattleActionGameModeProxy* GameMode) override;
 
     //  アクションTick
     //  ActionResult    :   アクション結果
     //  DeltaSecounds   :   細分時間
     //  GameMode        :   ゲームモード
     //  @Return         :   true 終了 : false 続行
-    virtual bool TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleGameMode* GameMode) override;
+    virtual bool TickAction(FActionResultData& ActionResult, float DeltaSecounds, ABattleActionGameModeProxy* GameMode) override;
 
     // 現在のステートをスタックに保存
     void PushState(ESkillState NextState, float WaitTime = 0.0f);

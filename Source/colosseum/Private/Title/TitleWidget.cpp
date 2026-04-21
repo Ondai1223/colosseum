@@ -5,6 +5,19 @@
 #include "Title/TitleGameMode.h"
 
 #define TitleMenu TEXT("WBP_Title_Menu")
+#define BATTLENUM 0
+#define ONLINENUM 1
+#define CHANGENAMENUM 2
+#define GUIDENUM 3
+#define HELPNUM 4
+#define CREDITNUM 5
+
+#define BATTLELEVEL TEXT("LV_BattleFiled")
+#define ONLINELEVEL TEXT("");
+#define CHANGENAMELEVEL TEXT("");
+#define GUIDELEVEL TEXT("");
+#define HELPLEVEL TEXT("");
+#define CREDITLEVEL TEXT("");
 
 void UTitleWidget::NativeConstruct()
 {
@@ -54,6 +67,46 @@ void UTitleWidget::ChangeButton()
 
 }
 
+void UTitleWidget::TitleTick(float DeltaSeconds)
+{
+	if(TitleController == nullptr)
+	{
+		return;
+	}
+	if (TitleController->IsOkTrigger())
+	{
+		switch (SelectCursor)
+		{
+		case BATTLENUM:
+			NextLevelName = BATTLELEVEL;	
+			BeginNextLevel();
+			break;
+		case ONLINENUM:
+			NextLevelName = ONLINELEVEL;	
+			BeginNextLevel();
+			break;
+		case CHANGENAMENUM:
+			NextLevelName = CHANGENAMELEVEL;
+			BeginNextLevel();
+			break;
+		case GUIDENUM:
+			NextLevelName = GUIDELEVEL;
+			BeginNextLevel();
+			break;
+		case HELPNUM:
+			NextLevelName = HELPLEVEL;
+			BeginNextLevel();
+			break;
+		case CREDITNUM:
+			NextLevelName = CREDITLEVEL;
+			BeginNextLevel();
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 void UTitleWidget::HandleInputChanged()
 {
 	ChangeButton();
@@ -77,4 +130,8 @@ void UTitleWidget::DecrementCursor()
 	{
 		SelectCursor = 5;
 	}
+}
+
+void UTitleWidget::BeginNextLevel_Implementation()
+{
 }

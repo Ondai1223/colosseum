@@ -50,6 +50,9 @@ public:
 	// Player2の魔素パネルの通常型の魔素チェック
 	void ResolvePlayer2PendingMasoActions(ABattleGameMode* GameMode);
 
+	// ターン更新の際に行う処理をまとめたもの
+	void UpdateTurnMasoActions();
+
 	// MasoPanelが発動中かチェックする関数.
 	bool AbleJoin(TObjectPtr<AMasoPanel> MasoPanel);
 
@@ -64,15 +67,15 @@ public:
 
 	// 魔素効果のエフェクト発生
 	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
-	void MasoActionEffect();
+	void MasoActionEffect(UMasoActionBase* MasoAction);
 
 	// 魔素効果の計算
 	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
-	void MasoActionCalculate();
+	void MasoActionCalculate(UMasoActionBase* MasoAction);
 
 	// 魔素効果エフェクトの時間取得
 	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
-	float GetMasoActionTime();
+	float GetMasoActionTime(UMasoActionBase* MasoAction);
 
 	// 魔素データの初期化.
 	UFUNCTION(BlueprintCallable, Category = CATEGORY_Maso)
@@ -83,15 +86,23 @@ public:
 	//  アクションリザルトの初期化
 	void ClearActionResult();
 
+	bool IsMasoActionActive();
+
 	// 魔素効果エフェクトと計算処理を始めるイベントノード
 	UFUNCTION(BlueprintNativeEvent, Category = CATEGORY_Maso)
-	void OnMasoAction();
-	virtual void OnMasoAction_Implementation();
+	void OnMasoAction(UMasoActionBase* LaunchedAction);
+	virtual void OnMasoAction_Implementation(UMasoActionBase* LaunchedAction);
 
 
 protected:
 	UPROPERTY(Transient)
 	ABattleGameMode* MasoGameMode;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UMasoActionBase> CurrentMasoAction; // 発動効果格納先
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<TObjectPtr<UMasoActionBase>> MasoActionList; // バトルにある魔素アクションの管理リスト
 private:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AMasoPanel>> MasoPanelArray; //魔素パネルの配列
@@ -101,9 +112,6 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AMasoPanel>> Player2MasoPanel; //プレイヤー２のパネル配列
-
-	UPROPERTY(Transient)
-	TObjectPtr<UMasoActionBase> CurrentMasoAction; // 発動効果格納先
 
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> MasoPanelEffectComponent;
